@@ -688,7 +688,7 @@ if __name__ == '__main__':
         db.create_all()
         print("База данных инициализирована")
     
-    print("Запуск Bazar Monitoring API на http://localhost:5000")
-    print("Swagger документация: http://localhost:5000/docs/")
+    print("Запуск Bazar Monitoring API на http://0.0.0.0:5000")
+    print("Swagger документация: http://<server-ip>:5000/docs/")
     app.run(debug=True, host='0.0.0.0', port=5000)
 

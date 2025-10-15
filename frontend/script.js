@@ -18,9 +18,7 @@ updateClock();
 // ===============================================
 
 // Backend API URL (автоматически определяется для Docker или локального запуска)
-const API_BASE_URL = window.location.hostname === 'localhost' && window.location.port === ''
-    ? 'http://localhost:5000/api'  // Локальный запуск
-    : 'http://localhost:5000/api';  // Docker compose
+const API_BASE_URL = `http://${window.location.hostname}:5000/api`;
 
 let bazarsData = [];
 let filteredData = [];
