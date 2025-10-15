@@ -1954,6 +1954,35 @@ body::after {
     color: var(--text-primary);
 }
 
+.form-actions .btn-delete {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    border: 1px solid #d32f2f;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: auto;
+    height: auto;
+}
+
+.form-actions .btn-delete:hover {
+    background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+    border-color: #c62828;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.form-actions .btn-delete:active {
+    transform: translateY(0);
+}
+
 .btn-refresh-small {
     display: flex;
     align-items: center;

@@ -468,7 +468,7 @@ function createServiceCard(bazar, index) {
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <button class="btn-edit" onclick="openEditServiceModal(${bazar.id})" title="Редактировать">
+                    <button class="btn-edit" onclick="openEditServiceModal('${bazar.endpoint.ip}', ${bazar.endpoint.port})" title="Редактировать">
                         <i class="fas fa-pencil"></i>
                     </button>
                     <div class="market-status ${statusClass}">
@@ -1100,45 +1100,34 @@ async function deleteService(serviceId) {
     }
 }
 
-async function openEditServiceModal(serviceId) {
+async function openEditServiceModal(ip, port) {
     try {
-        // Сначала пробуем найти в уже загруженных данных
-        let service = bazarsData.find(s => s.id === serviceId);
+        // Загружаем данные из API /status
+        const response = await fetch(`${API_BASE_URL}/status`);
+        const result = await response.json();
         
-        // Если не нашли, загружаем из API
+        if (!result.success) {
+            showNotification('Ошибка загрузки данных сервиса', 'error');
+            console.error('API error:', result);
+            return;
+        }
+        
+        // Находим сервис по IP и порту
+        const service = result.data.find(s => s.ip === ip && s.port === port);
         if (!service) {
-            const response = await fetch(`${API_BASE_URL}/status`);
-            const result = await response.json();
-            
-            if (!result.success) {
-                showNotification('Ошибка загрузки данных сервиса', 'error');
-                console.error('API error:', result);
-                return;
-            }
-            
-            service = result.data.find(s => s.id === serviceId);
-            if (!service) {
-                showNotification(`Сервис не найден (ID: ${serviceId})`, 'error');
-                console.error('Service not found. Available services:', result.data);
-                return;
-            }
+            showNotification(`Сервис не найден (${ip}:${port})`, 'error');
+            console.error('Service not found. Available services:', result.data);
+            return;
         }
         
         // Заполняем форму редактирования
         document.getElementById('editServiceId').value = service.id;
         document.getElementById('editServiceName').value = service.name || '';
         document.getElementById('editServiceCity').value = service.city || '';
-        
-        // Для данных из /api/bazars используем endpoint, для /api/status - прямые поля
-        const ip = service.ip || service.endpoint?.ip;
-        const port = service.port || service.endpoint?.port;
-        const backendPort = service.backend_port || service.endpoint?.backendPort;
-        const pgPort = service.pg_port || service.endpoint?.pgPort;
-        
-        document.getElementById('editServiceIp').value = ip;
-        document.getElementById('editServicePort').value = port;
-        document.getElementById('editServiceBackendPort').value = backendPort;
-        document.getElementById('editServicePgPort').value = pgPort;
+        document.getElementById('editServiceIp').value = service.ip;
+        document.getElementById('editServicePort').value = service.port;
+        document.getElementById('editServiceBackendPort').value = service.backend_port;
+        document.getElementById('editServicePgPort').value = service.pg_port;
         
         // Заполняем контакты
         if (service.contact_click) {
@@ -1502,6 +1491,8 @@ document.getElementById('editServiceForm').addEventListener('submit', (e) => {
     const serviceData = {
         name: formData.get('name'),
         city: formData.get('city'),
+        ip: formData.get('ip'),
+        port: parseInt(formData.get('port')),
         backend_port: parseInt(formData.get('backend_port')),
         pg_port: parseInt(formData.get('pg_port'))
     };

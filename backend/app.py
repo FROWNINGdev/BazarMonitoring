@@ -584,6 +584,12 @@ class ServiceResource(Resource):
             if 'city' in data and data['city'] != service.city:
                 changes['city'] = {'old': service.city, 'new': data['city']}
                 service.city = data['city']
+            if 'ip' in data and data['ip'] != service.bazar_ip:
+                changes['ip'] = {'old': service.bazar_ip, 'new': data['ip']}
+                service.bazar_ip = data['ip']
+            if 'port' in data and data['port'] != service.bazar_port:
+                changes['port'] = {'old': service.bazar_port, 'new': data['port']}
+                service.bazar_port = data['port']
             if 'backend_port' in data and data['backend_port'] != service.backend_port:
                 changes['backend_port'] = {'old': service.backend_port, 'new': data['backend_port']}
                 service.backend_port = data['backend_port']
