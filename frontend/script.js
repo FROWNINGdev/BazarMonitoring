@@ -424,33 +424,41 @@ function createServiceCard(bazar, index) {
     const statusClass = bazar.status === 'online' ? 'online' : 'offline';
     const statusText = bazar.status === 'online' ? 'Active' : 'Offline';
 
-    // Формируем блок контактов если они есть
+    // Формируем блок контактов если они есть (всегда видимый)
     let contactsHtml = '';
     if (bazar.contact_click || bazar.contact_scc) {
         contactsHtml = `
             <div class="endpoint-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                <div class="endpoint-header" style="margin-bottom: 0.75rem;">
-                    <div class="endpoint-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <span class="endpoint-label">Контакты</span>
-                </div>
                 ${bazar.contact_click ? `
-                    <div class="contact-row" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem;">
-                        <span style="color: var(--text-muted); min-width: 80px;">Click:</span>
-                        <span style="font-weight: 500;">${bazar.contact_click_name || 'N/A'}</span>
-                        <a href="tel:${bazar.contact_click}" style="color: var(--primary); text-decoration: none; margin-left: auto;">
-                            ${bazar.contact_click}
-                        </a>
+                    <div class="endpoint-row">
+                        <div class="endpoint-header">
+                            <div class="endpoint-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span class="endpoint-label">Click: ${bazar.contact_click_name || 'N/A'}</span>
+                        </div>
+                        <div class="endpoint-data">
+                            <code>${bazar.contact_click}</code>
+                            <button class="btn-copy" onclick="copyToClipboard('${bazar.contact_click}')" title="Copy phone">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
                 ` : ''}
                 ${bazar.contact_scc ? `
-                    <div class="contact-row" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                        <span style="color: var(--text-muted); min-width: 80px;">SCC:</span>
-                        <span style="font-weight: 500;">${bazar.contact_scc_name || 'N/A'}</span>
-                        <a href="tel:${bazar.contact_scc}" style="color: var(--primary); text-decoration: none; margin-left: auto;">
-                            ${bazar.contact_scc}
-                        </a>
+                    <div class="endpoint-row">
+                        <div class="endpoint-header">
+                            <div class="endpoint-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <span class="endpoint-label">SCC: ${bazar.contact_scc_name || 'N/A'}</span>
+                        </div>
+                        <div class="endpoint-data">
+                            <code>${bazar.contact_scc}</code>
+                            <button class="btn-copy" onclick="copyToClipboard('${bazar.contact_scc}')" title="Copy phone">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
                 ` : ''}
             </div>
@@ -480,7 +488,17 @@ function createServiceCard(bazar, index) {
         </div>
 
         <div class="market-body">
-            <div class="endpoint-group">
+            <!-- Кнопка для раскрытия endpoints -->
+            <div class="endpoints-toggle" onclick="toggleEndpoints(this)" style="cursor: pointer; padding: 0.75rem; display: flex; align-items: center; justify-content: space-between; background: var(--surface-color); border-radius: 8px; margin-bottom: 0.5rem; transition: all 0.3s ease;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-network-wired" style="color: var(--primary);"></i>
+                    <span style="font-weight: 500;">Endpoints</span>
+                </div>
+                <i class="fas fa-chevron-down" style="color: var(--text-muted); transition: transform 0.3s ease;"></i>
+            </div>
+            
+            <!-- Скрываемая секция endpoints -->
+            <div class="endpoint-group" style="display: none; margin-bottom: 1rem;">
                 <div class="endpoint-row">
                     <div class="endpoint-header">
                         <div class="endpoint-icon frontend">
@@ -695,6 +713,21 @@ function openService(ip, port) {
     window.open(`http://${ip}:${port}`, '_blank');
 }
 
+function toggleEndpoints(toggleButton) {
+    const endpointGroup = toggleButton.nextElementSibling;
+    const chevron = toggleButton.querySelector('.fa-chevron-down');
+    
+    if (endpointGroup.style.display === 'none') {
+        endpointGroup.style.display = 'block';
+        chevron.style.transform = 'rotate(180deg)';
+        toggleButton.style.background = 'linear-gradient(135deg, var(--primary-light), var(--primary))';
+    } else {
+        endpointGroup.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
+        toggleButton.style.background = 'var(--surface-color)';
+    }
+}
+
 // ===============================================
 // Event Listeners
 // ===============================================
@@ -758,9 +791,13 @@ function initMap() {
         center: [41.3, 64.5],
         zoom: 6,
         minZoom: 5,
-        maxZoom: 10,
+        maxZoom: 18,
         zoomControl: true,
-        attributionControl: false // Убираем атрибуцию
+        attributionControl: false, // Убираем атрибуцию
+        zoomAnimation: true,
+        zoomAnimationThreshold: 4,
+        fadeAnimation: true,
+        markerZoomAnimation: true
     });
 
     // Добавляем тайлы карты (темная тема)
@@ -852,7 +889,9 @@ function updateMapMarkers() {
     const locationGroups = {};
     bazarsData.forEach(bazar => {
         // Используем координаты из БД, если они есть
-        if (!bazar.latitude || !bazar.longitude) return;
+        if (!bazar.latitude || !bazar.longitude) {
+            return;
+        }
         
         const locationKey = `${bazar.latitude}_${bazar.longitude}`;
         if (!locationGroups[locationKey]) {
@@ -968,6 +1007,14 @@ function updateMapMarkers() {
         const marker = L.marker([location.coords.lat, location.coords.lng], { icon })
             .bindPopup(popupContent)
             .addTo(uzbekistanMap);
+
+        // При клике на маркер - центрируем карту с плавной анимацией
+        marker.on('click', function() {
+            uzbekistanMap.flyTo([location.coords.lat, location.coords.lng], 18, {
+                duration: 2,
+                easeLinearity: 0.1
+            });
+        });
 
         cityMarkers[`${location.name}_${index}`] = marker;
     });
@@ -1112,16 +1159,20 @@ async function openEditServiceModal(ip, port) {
             return;
         }
         
-        // Находим сервис по IP и порту
-        const service = result.data.find(s => s.ip === ip && s.port === port);
+        // Находим сервис по IP и порту (приводим порт к числу для сравнения)
+        const portNum = parseInt(port);
+        const service = result.data.find(s => s.ip === ip && parseInt(s.port) === portNum);
+        
         if (!service) {
             showNotification(`Сервис не найден (${ip}:${port})`, 'error');
-            console.error('Service not found. Available services:', result.data);
+            console.error('Service not found. Searched:', ip, portNum);
+            console.error('Available services:', result.data);
             return;
         }
         
         // Заполняем форму редактирования
         document.getElementById('editServiceId').value = service.id;
+        
         document.getElementById('editServiceName').value = service.name || '';
         document.getElementById('editServiceCity').value = service.city || '';
         document.getElementById('editServiceIp').value = service.ip;
@@ -1176,7 +1227,7 @@ async function updateService(serviceId, formData) {
         
         const result = await response.json();
         
-        if (result.success) {
+        if (result.success || response.ok) {
             showNotification(`✅ ${formData.name || formData.ip} - обновлен успешно!`, 'success');
             closeEditServiceModal();
             // Обновляем логи только если модальное окно логов открыто
@@ -1185,10 +1236,12 @@ async function updateService(serviceId, formData) {
             }
             loadAllBazars(); // Обновляем основной список
         } else {
-            showNotification(result.error || 'Ошибка обновления сервиса', 'error');
+            showNotification(result.error || result.message || 'Ошибка обновления сервиса', 'error');
+            console.error('Update failed:', result);
         }
     } catch (error) {
         showNotification(`Ошибка: ${error.message}`, 'error');
+        console.error('Update error:', error);
     }
 }
 
@@ -1488,6 +1541,12 @@ document.getElementById('editServiceForm').addEventListener('submit', (e) => {
     
     const formData = new FormData(document.getElementById('editServiceForm'));
     const serviceId = parseInt(document.getElementById('editServiceId').value);
+    
+    if (isNaN(serviceId)) {
+        showNotification('Ошибка: ID сервиса не определен. Попробуйте открыть форму заново.', 'error');
+        return;
+    }
+    
     const serviceData = {
         name: formData.get('name'),
         city: formData.get('city'),

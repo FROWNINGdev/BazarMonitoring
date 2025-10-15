@@ -132,6 +132,12 @@ bazar_model = api.model('Bazar', {
     'city': fields.String(description='Город'),
     'status': fields.String(enum=['online', 'offline'], description='Статус базара'),
     'endpoint': fields.Raw(description='Информация об endpoint'),
+    'contact_click': fields.String(description='Контакт Click'),
+    'contact_click_name': fields.String(description='Имя контакта Click'),
+    'contact_scc': fields.String(description='Контакт SCC'),
+    'contact_scc_name': fields.String(description='Имя контакта SCC'),
+    'latitude': fields.Float(description='Широта'),
+    'longitude': fields.Float(description='Долгота'),
     'timestamp': fields.DateTime(description='Время последней проверки')
 })
 
@@ -257,8 +263,9 @@ def log_status_change(bazar_data, endpoint, status, error=None):
     
     # Логируем только если статус изменился
     if not current_bazar or current_bazar.status != status:
-        bazar_name = bazar_data.get('name', f"{endpoint['ip']}:{endpoint['port']}") if bazar_data else f"{endpoint['ip']}:{endpoint['port']}"
-        city = bazar_data.get('city', 'Unknown') if bazar_data else 'Unknown'
+        # Используем название из БД (если есть), а не из API сервиса
+        bazar_name = current_bazar.bazar_name if current_bazar else f"{endpoint['ip']}:{endpoint['port']}"
+        city = current_bazar.city if current_bazar else 'Unknown'
         
         log = BazarLog(
             bazar_name=bazar_name,
@@ -279,9 +286,7 @@ def log_status_change(bazar_data, endpoint, status, error=None):
         current_bazar.last_check = datetime.utcnow()
         if status == 'online':
             current_bazar.last_online = datetime.utcnow()
-            if bazar_data:
-                current_bazar.bazar_name = bazar_data.get('name', current_bazar.bazar_name)
-                current_bazar.city = bazar_data.get('city', current_bazar.city)
+            # НЕ обновляем название и город - они управляются только через форму редактирования
         else:
             current_bazar.last_offline = datetime.utcnow()
     else:
@@ -340,10 +345,11 @@ class BazarsResource(Resource):
             if result['success']:
                 data = result['data']
                 log_status_change(data, endpoint, 'online')
+                
                 results.append({
                     'id': service.id,
-                    'name': data.get('name', service.bazar_name),
-                    'city': data.get('city', service.city),
+                    'name': service.bazar_name,  # Всегда берем из БД, а не из API сервиса
+                    'city': service.city,  # Всегда берем из БД, а не из API сервиса
                     'status': 'online',
                     'endpoint': endpoint,
                     'contact_click': service.contact_click,
@@ -554,8 +560,6 @@ class ServicesResource(Resource):
 class ServiceResource(Resource):
     @services_ns.doc('update_service')
     @services_ns.expect(service_model)
-    @services_ns.marshal_with(service_response_model)
-    @services_ns.marshal_with(error_model, code=400)
     def put(self, service_id):
         """Обновить сервис"""
         try:
@@ -660,7 +664,6 @@ class ServiceResource(Resource):
             }, 500
 
     @services_ns.doc('delete_service')
-    @services_ns.marshal_with(error_model, code=404)
     def delete(self, service_id):
         """Удалить сервис"""
         try:
