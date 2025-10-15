@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Backend сервис
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bazar-monitoring-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      # Монтируем volume для сохранения БД
+      - bazar-db:/app/instance
+    environment:
+      - SQLALCHEMY_DATABASE_URI=sqlite:////app/instance/bazar_monitoring.db
+      - FLASK_ENV=production
+    restart: unless-stopped
+    networks:
+      - bazar-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend сервис
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bazar-monitoring-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - bazar-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Volumes для постоянного хранения данных
+volumes:
+  bazar-db:
+    driver: local
+
+# Сеть для связи между контейнерами
+networks:
+  bazar-network:
+    driver: bridge
+

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bozor Monitoring System</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <div class="brand-logo">
+                    <img src="favicon.png" alt="Bozor Logo">
+                </div>
+                <div class="brand-info">
+                    <h1>Bozor Monitoring</h1>
+                    <span class="brand-tag">Real-Time Analytics</span>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <div class="nav-time">
+                    <i class="far fa-clock"></i>
+                    <span id="currentTime">--:--:--</span>
+                </div>
+                <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m" 
+                   target="_blank" 
+                   class="nav-btn">
+                    <i class="fas fa-chart-line"></i>
+                    <span data-i18n="nav.analytics">Аналитика</span>
+                </a>
+                <a href="http://192.168.168.36:9000/#!/home" 
+                   target="_blank" 
+                   class="nav-btn">
+                    <i class="fab fa-docker"></i>
+                    <span data-i18n="nav.containers">Контейнеры</span>
+                </a>
+                <button id="addServiceBtn" class="nav-btn add-service-btn">
+                    <i class="fas fa-plus"></i>
+                    <span data-i18n="nav.addService">Добавить сервис</span>
+                </button>
+                <button id="logsBtn" class="nav-btn logs-btn">
+                    <i class="fas fa-list"></i>
+                    <span data-i18n="nav.logs">Логи</span>
+                </button>
+                <button id="langToggle" class="nav-btn lang-toggle">
+                    <i class="fas fa-language"></i>
+                    <span id="currentLang">RU</span>
+                </button>
+                <button id="themeToggle" class="nav-btn theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <div class="dashboard-container">
+            <!-- Status Overview -->
+            <section class="status-section">
+                <div class="section-title-bar">
+                    <h2 data-i18n="dashboard.systemOverview">System Overview</h2>
+                    <button id="refreshBtn" class="btn-refresh">
+                        <i class="fas fa-rotate"></i>
+                        <span data-i18n="dashboard.refresh">Refresh</span>
+                    </button>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card total">
+                        <div class="status-header">
+                            <div class="status-icon-box">
+                                <i class="fas fa-cubes"></i>
+                            </div>
+                            <div class="status-badge" data-i18n="dashboard.total">TOTAL</div>
+                        </div>
+                        <div class="status-body">
+                            <div class="status-value" id="totalBazars">--</div>
+                            <div class="status-label">Bozor</div>
+                        </div>
+                        <div class="status-footer">
+                            <span class="status-trend" data-i18n="dashboard.allBozor">All Bozor</span>
+                        </div>
+                    </div>
+
+                    <div class="status-card online">
+                        <div class="status-header">
+                            <div class="status-icon-box">
+                                <i class="fas fa-circle-check"></i>
+                            </div>
+                            <div class="status-badge success" data-i18n="dashboard.online">ACTIVE</div>
+                        </div>
+                        <div class="status-body">
+                            <div class="status-value" id="onlineBazars">--</div>
+                            <div class="status-label" data-i18n="dashboard.online">Online</div>
+                        </div>
+                        <div class="status-footer">
+                            <span class="status-trend success" data-i18n="dashboard.activeBozor">
+                                <i class="fas fa-signal"></i>
+                                Operational
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="status-card offline">
+                        <div class="status-header">
+                            <div class="status-icon-box">
+                                <i class="fas fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="status-badge danger" data-i18n="dashboard.offline">CRITICAL</div>
+                        </div>
+                        <div class="status-body">
+                            <div class="status-value" id="offlineBazars">--</div>
+                            <div class="status-label" data-i18n="dashboard.offline">Offline</div>
+                        </div>
+                        <div class="status-footer">
+                            <span class="status-trend danger" data-i18n="dashboard.downBozor">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Requires Action
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Control Panel -->
+            <section class="control-section">
+                <div class="control-bar">
+                    <div class="search-container">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" data-i18n-placeholder="dashboard.search" placeholder="Search markets, locations, endpoints...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label>
+                                <i class="fas fa-location-dot"></i>
+                                <span data-i18n="dashboard.filterByCity">Location</span>
+                            </label>
+                            <select id="cityFilter">
+                                <option value="all" data-i18n="dashboard.allLocations">All Locations</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label>
+                                <i class="fas fa-signal"></i>
+                                <span data-i18n="dashboard.filterByStatus">Status</span>
+                            </label>
+                            <select id="statusFilter">
+                                <option value="all" data-i18n="dashboard.allStatuses">All Status</option>
+                                <option value="online" data-i18n="dashboard.online">Online</option>
+                                <option value="offline" data-i18n="dashboard.offline">Offline</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Geographic Map Button -->
+            <section class="map-section">
+                <button id="openMapBtn" class="map-open-btn">
+                    <div class="map-btn-icon">
+                        <i class="fas fa-map-location-dot"></i>
+                    </div>
+                    <div class="map-btn-content">
+                        <h3 data-i18n="dashboard.showMap">Geographic Distribution</h3>
+                        <p data-i18n="dashboard.bozorEndpoints">View bozors on Uzbekistan map</p>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </section>
+
+            <!-- Map Modal -->
+            <div id="mapModal" class="map-modal">
+                <div class="map-modal-overlay"></div>
+                <div class="map-modal-content">
+                    <div class="map-modal-header">
+                        <div class="map-modal-title">
+                            <i class="fas fa-map-location-dot"></i>
+                            <h2>Geographic Distribution - Uzbekistan</h2>
+                        </div>
+                        <div class="map-modal-actions">
+                            <button id="fullscreenMapBtn" class="map-modal-action-btn" title="Fullscreen">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                            <button id="closeMapBtn" class="map-modal-close">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="map-modal-body">
+                        <div id="uzbekistanMap" class="map-view"></div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <div class="legend-marker online"></div>
+                                <span>Online</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-marker offline"></div>
+                                <span>Offline</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-marker partial"></div>
+                                <span>Partial</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Service Modal -->
+            <div id="addServiceModal" class="admin-modal">
+                <div class="admin-modal-overlay"></div>
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-title">
+                            <i class="fas fa-plus"></i>
+                            <h2>Добавить новый сервис</h2>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button id="closeAddServiceBtn" class="admin-modal-close">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="admin-section">
+                            <form id="addServiceForm" class="admin-form">
+                                <!-- Основные поля -->
+                                <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceName">Название сервиса</label>
+                                            <input type="text" id="serviceName" name="name" placeholder="Например: MIROBOD DEHQON BOZORI">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="serviceCity">Город</label>
+                                            <input type="text" id="serviceCity" name="city" placeholder="Например: Tashkent">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceIp">IP адрес</label>
+                                            <input type="text" id="serviceIp" name="ip" placeholder="192.168.168.37" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="servicePort">Порт фронтенда</label>
+                                            <input type="number" id="servicePort" name="port" placeholder="80" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceBackendPort">Порт backend API</label>
+                                            <input type="number" id="serviceBackendPort" name="backend_port" placeholder="8200" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="servicePgPort">Порт PostgreSQL</label>
+                                            <input type="number" id="servicePgPort" name="pg_port" placeholder="5400" required>
+                                        </div>
+                                    </div>
+                                
+                                <!-- Раскрывающаяся секция "Дополнительно" -->
+                                <div class="form-collapsible">
+                                    <button type="button" class="form-collapsible-toggle" id="toggleAdditional">
+                                        <i class="fas fa-chevron-down"></i>
+                                        <span>Дополнительно (контакты, координаты)</span>
+                                    </button>
+                                    
+                                    <div class="form-collapsible-content" id="additionalContent">
+                                        <div class="form-section-title">
+                                            <i class="fas fa-phone"></i>
+                                            <h4>Контактная информация</h4>
+                                        </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceContactClickName">Имя контакта Click</label>
+                                            <input type="text" id="serviceContactClickName" name="contact_click_name" data-i18n-placeholder="modal.addService.contactClickNamePlaceholder" placeholder="Например: Иван Иванов">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="serviceContactClick">Телефон Click</label>
+                                            <div class="phone-input">
+                                                <span class="phone-prefix">+998</span>
+                                                <input type="tel" id="serviceContactClick" name="contact_click" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceContactSccName">Имя контакта SCC</label>
+                                            <input type="text" id="serviceContactSccName" name="contact_scc_name" data-i18n-placeholder="modal.addService.contactSccNamePlaceholder" placeholder="Например: Петр Петров">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="serviceContactScc">Телефон SCC</label>
+                                            <div class="phone-input">
+                                                <span class="phone-prefix">+998</span>
+                                                <input type="tel" id="serviceContactScc" name="contact_scc" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-section-title">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <h4>Координаты на карте</h4>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceLatitude">Широта</label>
+                                            <input type="number" id="serviceLatitude" name="latitude" placeholder="41.291173" step="0.000001" min="-90" max="90">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="serviceLongitude">Долгота</label>
+                                            <input type="number" id="serviceLongitude" name="longitude" placeholder="69.274854" step="0.000001" min="-180" max="180">
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                    
+                                <div class="form-actions">
+                                        <button type="submit" class="btn-submit">
+                                            <i class="fas fa-save"></i>
+                                            <span>Сохранить сервис</span>
+                                        </button>
+                                        <button type="button" id="cancelAddService" class="btn-cancel">
+                                            <i class="fas fa-times"></i>
+                                            <span>Отмена</span>
+                                        </button>
+                                    </div>
+                                </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Modal -->
+            <div id="logsModal" class="admin-modal">
+                <div class="admin-modal-overlay"></div>
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-title">
+                            <i class="fas fa-list"></i>
+                            <h2>Системные логи</h2>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button id="closeLogsBtn" class="admin-modal-close">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="admin-section">
+                            <div class="admin-section-header">
+                                <div class="log-filters">
+                                    <select id="logStatusFilter">
+                                        <option value="">Все статусы</option>
+                                        <option value="online">Online</option>
+                                        <option value="offline">Offline</option>
+                                    </select>
+                                    <input type="number" id="logLimit" placeholder="Количество записей" value="50" min="1" max="1000">
+                                    <button id="downloadLogsBtn" class="btn-download-logs" title="Скачать логи">
+                                        <i class="fas fa-download"></i>
+                                        <span>Скачать</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="logsList" class="logs-list">
+                                <div class="loading-state">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Загрузка логов...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Markets Grid -->
+            <section class="markets-section">
+                <div class="section-title-bar">
+                    <h2 data-i18n="dashboard.bozorEndpoints">Bozor Endpoints</h2>
+                    <div class="view-info">
+                        <i class="fas fa-circle"></i>
+                        <span data-i18n="dashboard.liveData">Live Data</span>
+                    </div>
+                </div>
+
+                <div id="bazarsGrid" class="markets-grid">
+                    <div class="loading-state">
+                        <div class="modern-loader">
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
+                            <div class="loader-core"></div>
+                        </div>
+                        <div class="loading-info">
+                            <p class="loading-title">Establishing Connection</p>
+                            <p class="loading-subtitle">Fetching bozor data...</p>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p class="progress-text">0 / 0</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
