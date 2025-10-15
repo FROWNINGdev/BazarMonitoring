@@ -341,20 +341,34 @@ class BazarsResource(Resource):
                 data = result['data']
                 log_status_change(data, endpoint, 'online')
                 results.append({
+                    'id': service.id,
                     'name': data.get('name', service.bazar_name),
                     'city': data.get('city', service.city),
                     'status': 'online',
                     'endpoint': endpoint,
+                    'contact_click': service.contact_click,
+                    'contact_click_name': service.contact_click_name,
+                    'contact_scc': service.contact_scc,
+                    'contact_scc_name': service.contact_scc_name,
+                    'latitude': service.latitude,
+                    'longitude': service.longitude,
                     'timestamp': datetime.utcnow().isoformat()
                 })
             else:
                 log_status_change(None, endpoint, 'offline', result.get('error'))
                 results.append({
+                    'id': service.id,
                     'name': service.bazar_name,
                     'city': service.city,
                     'status': 'offline',
                     'error': result.get('error'),
                     'endpoint': endpoint,
+                    'contact_click': service.contact_click,
+                    'contact_click_name': service.contact_click_name,
+                    'contact_scc': service.contact_scc,
+                    'contact_scc_name': service.contact_scc_name,
+                    'latitude': service.latitude,
+                    'longitude': service.longitude,
                     'timestamp': datetime.utcnow().isoformat()
                 })
         
@@ -553,7 +567,13 @@ class ServiceResource(Resource):
                 'name': service.bazar_name,
                 'city': service.city,
                 'backend_port': service.backend_port,
-                'pg_port': service.pg_port
+                'pg_port': service.pg_port,
+                'contact_click': service.contact_click,
+                'contact_click_name': service.contact_click_name,
+                'contact_scc': service.contact_scc,
+                'contact_scc_name': service.contact_scc_name,
+                'latitude': service.latitude,
+                'longitude': service.longitude
             }
             
             # Обновляем поля
@@ -570,6 +590,40 @@ class ServiceResource(Resource):
             if 'pg_port' in data and data['pg_port'] != service.pg_port:
                 changes['pg_port'] = {'old': service.pg_port, 'new': data['pg_port']}
                 service.pg_port = data['pg_port']
+            
+            # Обновляем контакты
+            if 'contact_click' in data:
+                new_val = data['contact_click']
+                if new_val != service.contact_click:
+                    changes['contact_click'] = {'old': service.contact_click, 'new': new_val}
+                    service.contact_click = new_val
+            if 'contact_click_name' in data:
+                new_val = data['contact_click_name']
+                if new_val != service.contact_click_name:
+                    changes['contact_click_name'] = {'old': service.contact_click_name, 'new': new_val}
+                    service.contact_click_name = new_val
+            if 'contact_scc' in data:
+                new_val = data['contact_scc']
+                if new_val != service.contact_scc:
+                    changes['contact_scc'] = {'old': service.contact_scc, 'new': new_val}
+                    service.contact_scc = new_val
+            if 'contact_scc_name' in data:
+                new_val = data['contact_scc_name']
+                if new_val != service.contact_scc_name:
+                    changes['contact_scc_name'] = {'old': service.contact_scc_name, 'new': new_val}
+                    service.contact_scc_name = new_val
+            
+            # Обновляем координаты
+            if 'latitude' in data:
+                new_val = data['latitude']
+                if new_val != service.latitude:
+                    changes['latitude'] = {'old': service.latitude, 'new': new_val}
+                    service.latitude = new_val
+            if 'longitude' in data:
+                new_val = data['longitude']
+                if new_val != service.longitude:
+                    changes['longitude'] = {'old': service.longitude, 'new': new_val}
+                    service.longitude = new_val
             
             service.last_check = datetime.utcnow()
             db.session.commit()

@@ -319,11 +319,11 @@
                                     <div class="form-row">
                                         <div class="form-group">
                                             <label for="serviceLatitude">Широта</label>
-                                            <input type="number" id="serviceLatitude" name="latitude" placeholder="41.291173" step="0.000001" min="-90" max="90">
+                                            <input type="text" id="serviceLatitude" name="latitude" placeholder="41.291173" pattern="^-?\d+\.?\d*$">
                                         </div>
                                         <div class="form-group">
                                             <label for="serviceLongitude">Долгота</label>
-                                            <input type="number" id="serviceLongitude" name="longitude" placeholder="69.274854" step="0.000001" min="-180" max="180">
+                                            <input type="text" id="serviceLongitude" name="longitude" placeholder="69.274854" pattern="^-?\d+\.?\d*$">
                                         </div>
                                     </div>
                                     </div>
@@ -340,6 +340,139 @@
                                         </button>
                                     </div>
                                 </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Service Modal -->
+            <div id="editServiceModal" class="admin-modal">
+                <div class="admin-modal-overlay"></div>
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-title">
+                            <i class="fas fa-pencil"></i>
+                            <h2>Редактировать базар</h2>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button id="closeEditServiceBtn" class="admin-modal-close">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="admin-section">
+                            <form id="editServiceForm" class="admin-form">
+                                <input type="hidden" id="editServiceId" name="id">
+                                
+                                <!-- Основные поля -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editServiceName">Название сервиса</label>
+                                        <input type="text" id="editServiceName" name="name" placeholder="Например: MIROBOD DEHQON BOZORI">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editServiceCity">Город</label>
+                                        <input type="text" id="editServiceCity" name="city" placeholder="Например: Tashkent">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editServiceIp">IP адрес</label>
+                                        <input type="text" id="editServiceIp" name="ip" placeholder="192.168.168.37" readonly style="background: var(--bg-secondary); cursor: not-allowed;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editServicePort">Порт фронтенда</label>
+                                        <input type="number" id="editServicePort" name="port" placeholder="80" readonly style="background: var(--bg-secondary); cursor: not-allowed;">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editServiceBackendPort">Порт backend API</label>
+                                        <input type="number" id="editServiceBackendPort" name="backend_port" placeholder="8200">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editServicePgPort">Порт PostgreSQL</label>
+                                        <input type="number" id="editServicePgPort" name="pg_port" placeholder="5400">
+                                    </div>
+                                </div>
+                            
+                                <!-- Раскрывающаяся секция "Дополнительно" -->
+                                <div class="form-collapsible">
+                                    <button type="button" class="form-collapsible-toggle active" id="toggleEditAdditional">
+                                        <i class="fas fa-chevron-down"></i>
+                                        <span>Дополнительно (контакты, координаты)</span>
+                                    </button>
+                                    
+                                    <div class="form-collapsible-content active" id="editAdditionalContent">
+                                        <div class="form-section-title">
+                                            <i class="fas fa-phone"></i>
+                                            <h4>Контактная информация</h4>
+                                        </div>
+                                    
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="editServiceContactClickName">Имя контакта Click</label>
+                                                <input type="text" id="editServiceContactClickName" name="contact_click_name" placeholder="Например: Иван Иванов">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editServiceContactClick">Телефон Click</label>
+                                                <div class="phone-input">
+                                                    <span class="phone-prefix">+998</span>
+                                                    <input type="tel" id="editServiceContactClick" name="contact_click" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="editServiceContactSccName">Имя контакта SCC</label>
+                                                <input type="text" id="editServiceContactSccName" name="contact_scc_name" placeholder="Например: Петр Петров">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editServiceContactScc">Телефон SCC</label>
+                                                <div class="phone-input">
+                                                    <span class="phone-prefix">+998</span>
+                                                    <input type="tel" id="editServiceContactScc" name="contact_scc" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-section-title">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <h4>Координаты на карте</h4>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="editServiceLatitude">Широта</label>
+                                                <input type="text" id="editServiceLatitude" name="latitude" placeholder="41.291173" pattern="^-?\d+\.?\d*$">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editServiceLongitude">Долгота</label>
+                                                <input type="text" id="editServiceLongitude" name="longitude" placeholder="69.274854" pattern="^-?\d+\.?\d*$">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                    
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-save"></i>
+                                        <span>Сохранить изменения</span>
+                                    </button>
+                                    <button type="button" id="cancelEditService" class="btn-cancel">
+                                        <i class="fas fa-times"></i>
+                                        <span>Отмена</span>
+                                    </button>
+                                    <button type="button" id="deleteEditService" class="btn-delete" style="margin-left: auto; background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);">
+                                        <i class="fas fa-trash"></i>
+                                        <span>Удалить базар</span>
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

@@ -424,6 +424,39 @@ function createServiceCard(bazar, index) {
     const statusClass = bazar.status === 'online' ? 'online' : 'offline';
     const statusText = bazar.status === 'online' ? 'Active' : 'Offline';
 
+    // Формируем блок контактов если они есть
+    let contactsHtml = '';
+    if (bazar.contact_click || bazar.contact_scc) {
+        contactsHtml = `
+            <div class="endpoint-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div class="endpoint-header" style="margin-bottom: 0.75rem;">
+                    <div class="endpoint-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <span class="endpoint-label">Контакты</span>
+                </div>
+                ${bazar.contact_click ? `
+                    <div class="contact-row" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                        <span style="color: var(--text-muted); min-width: 80px;">Click:</span>
+                        <span style="font-weight: 500;">${bazar.contact_click_name || 'N/A'}</span>
+                        <a href="tel:${bazar.contact_click}" style="color: var(--primary); text-decoration: none; margin-left: auto;">
+                            ${bazar.contact_click}
+                        </a>
+                    </div>
+                ` : ''}
+                ${bazar.contact_scc ? `
+                    <div class="contact-row" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                        <span style="color: var(--text-muted); min-width: 80px;">SCC:</span>
+                        <span style="font-weight: 500;">${bazar.contact_scc_name || 'N/A'}</span>
+                        <a href="tel:${bazar.contact_scc}" style="color: var(--primary); text-decoration: none; margin-left: auto;">
+                            ${bazar.contact_scc}
+                        </a>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
     card.innerHTML = `
         <div class="market-header">
             <div class="market-title-row">
@@ -434,9 +467,14 @@ function createServiceCard(bazar, index) {
                         <span>${bazar.city || 'Unknown Location'}</span>
                     </div>
                 </div>
-                <div class="market-status ${statusClass}">
-                    <span class="status-indicator"></span>
-                    <span>${statusText}</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="btn-edit" onclick="openEditServiceModal(${bazar.id})" title="Редактировать">
+                        <i class="fas fa-pencil"></i>
+                    </button>
+                    <div class="market-status ${statusClass}">
+                        <span class="status-indicator"></span>
+                        <span>${statusText}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -488,6 +526,8 @@ function createServiceCard(bazar, index) {
                     </div>
                 </div>
             </div>
+            
+            ${contactsHtml}
         </div>
 
         <div class="market-footer">
@@ -1060,6 +1100,94 @@ async function deleteService(serviceId) {
     }
 }
 
+async function openEditServiceModal(serviceId) {
+    try {
+        // Получаем данные сервиса из API
+        const response = await fetch(`${API_BASE_URL}/status`);
+        const result = await response.json();
+        
+        if (!result.success) {
+            showNotification('Ошибка загрузки данных сервиса', 'error');
+            return;
+        }
+        
+        const service = result.data.find(s => s.id === serviceId);
+        if (!service) {
+            showNotification('Сервис не найден', 'error');
+            return;
+        }
+        
+        // Заполняем форму редактирования
+        document.getElementById('editServiceId').value = service.id;
+        document.getElementById('editServiceName').value = service.name || '';
+        document.getElementById('editServiceCity').value = service.city || '';
+        document.getElementById('editServiceIp').value = service.ip;
+        document.getElementById('editServicePort').value = service.port;
+        document.getElementById('editServiceBackendPort').value = service.backend_port;
+        document.getElementById('editServicePgPort').value = service.pg_port;
+        
+        // Заполняем контакты
+        if (service.contact_click) {
+            // Убираем +998 из начала для отображения
+            document.getElementById('editServiceContactClick').value = service.contact_click.replace('+998', '');
+        } else {
+            document.getElementById('editServiceContactClick').value = '';
+        }
+        document.getElementById('editServiceContactClickName').value = service.contact_click_name || '';
+        
+        if (service.contact_scc) {
+            document.getElementById('editServiceContactScc').value = service.contact_scc.replace('+998', '');
+        } else {
+            document.getElementById('editServiceContactScc').value = '';
+        }
+        document.getElementById('editServiceContactSccName').value = service.contact_scc_name || '';
+        
+        // Заполняем координаты
+        document.getElementById('editServiceLatitude').value = service.latitude || '';
+        document.getElementById('editServiceLongitude').value = service.longitude || '';
+        
+        // Открываем модальное окно
+        document.getElementById('editServiceModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        showNotification(`Ошибка: ${error.message}`, 'error');
+    }
+}
+
+function closeEditServiceModal() {
+    document.getElementById('editServiceModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function updateService(serviceId, formData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(`✅ ${formData.name || formData.ip} - обновлен успешно!`, 'success');
+            closeEditServiceModal();
+            // Обновляем логи только если модальное окно логов открыто
+            if (elements.logsModal.classList.contains('active')) {
+                loadLogsList();
+            }
+            loadAllBazars(); // Обновляем основной список
+        } else {
+            showNotification(result.error || 'Ошибка обновления сервиса', 'error');
+        }
+    } catch (error) {
+        showNotification(`Ошибка: ${error.message}`, 'error');
+    }
+}
+
 async function loadLogsList() {
     try {
         const statusFilter = elements.logStatusFilter.value;
@@ -1261,6 +1389,10 @@ async function downloadLogs() {
 elements.addServiceBtn.addEventListener('click', openAddServiceModal);
 elements.closeAddServiceBtn.addEventListener('click', closeAddServiceModal);
 
+// Edit Service Modal
+document.getElementById('closeEditServiceBtn').addEventListener('click', closeEditServiceModal);
+document.getElementById('cancelEditService').addEventListener('click', closeEditServiceModal);
+
 // Logs Modal
 elements.logsBtn.addEventListener('click', openLogsModal);
 elements.closeLogsBtn.addEventListener('click', closeLogsModal);
@@ -1270,6 +1402,7 @@ document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             closeAddServiceModal();
+            closeEditServiceModal();
             closeLogsModal();
         }
     });
@@ -1278,6 +1411,15 @@ document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
 // Раскрытие/скрытие дополнительных полей
 document.getElementById('toggleAdditional').addEventListener('click', function() {
     const content = document.getElementById('additionalContent');
+    const button = this;
+    
+    button.classList.toggle('active');
+    content.classList.toggle('active');
+});
+
+// Раскрытие/скрытие дополнительных полей в форме редактирования
+document.getElementById('toggleEditAdditional').addEventListener('click', function() {
+    const content = document.getElementById('editAdditionalContent');
     const button = this;
     
     button.classList.toggle('active');
@@ -1334,6 +1476,70 @@ elements.addServiceForm.addEventListener('submit', (e) => {
 document.getElementById('cancelAddService').addEventListener('click', () => {
     elements.addServiceForm.reset();
     closeAddServiceModal();
+});
+
+// Форма редактирования сервиса
+document.getElementById('editServiceForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(document.getElementById('editServiceForm'));
+    const serviceId = parseInt(document.getElementById('editServiceId').value);
+    const serviceData = {
+        name: formData.get('name'),
+        city: formData.get('city'),
+        backend_port: parseInt(formData.get('backend_port')),
+        pg_port: parseInt(formData.get('pg_port'))
+    };
+    
+    // Добавляем контакты если заполнены
+    const contactClick = formData.get('contact_click');
+    const contactClickName = formData.get('contact_click_name');
+    const contactScc = formData.get('contact_scc');
+    const contactSccName = formData.get('contact_scc_name');
+    
+    if (contactClick && contactClick.trim()) {
+        serviceData.contact_click = '+998' + contactClick.trim();
+    } else {
+        serviceData.contact_click = null;
+    }
+    if (contactClickName && contactClickName.trim()) {
+        serviceData.contact_click_name = contactClickName.trim();
+    } else {
+        serviceData.contact_click_name = null;
+    }
+    if (contactScc && contactScc.trim()) {
+        serviceData.contact_scc = '+998' + contactScc.trim();
+    } else {
+        serviceData.contact_scc = null;
+    }
+    if (contactSccName && contactSccName.trim()) {
+        serviceData.contact_scc_name = contactSccName.trim();
+    } else {
+        serviceData.contact_scc_name = null;
+    }
+    
+    // Добавляем координаты если заполнены
+    const latitude = formData.get('latitude');
+    const longitude = formData.get('longitude');
+    if (latitude && latitude.trim()) {
+        serviceData.latitude = parseFloat(latitude);
+    } else {
+        serviceData.latitude = null;
+    }
+    if (longitude && longitude.trim()) {
+        serviceData.longitude = parseFloat(longitude);
+    } else {
+        serviceData.longitude = null;
+    }
+    
+    updateService(serviceId, serviceData);
+});
+
+// Кнопка удаления в форме редактирования
+document.getElementById('deleteEditService').addEventListener('click', () => {
+    const serviceId = parseInt(document.getElementById('editServiceId').value);
+    closeEditServiceModal();
+    deleteService(serviceId);
 });
 
 // Фильтры логов
