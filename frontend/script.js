@@ -1102,29 +1102,43 @@ async function deleteService(serviceId) {
 
 async function openEditServiceModal(serviceId) {
     try {
-        // Получаем данные сервиса из API
-        const response = await fetch(`${API_BASE_URL}/status`);
-        const result = await response.json();
+        // Сначала пробуем найти в уже загруженных данных
+        let service = bazarsData.find(s => s.id === serviceId);
         
-        if (!result.success) {
-            showNotification('Ошибка загрузки данных сервиса', 'error');
-            return;
-        }
-        
-        const service = result.data.find(s => s.id === serviceId);
+        // Если не нашли, загружаем из API
         if (!service) {
-            showNotification('Сервис не найден', 'error');
-            return;
+            const response = await fetch(`${API_BASE_URL}/status`);
+            const result = await response.json();
+            
+            if (!result.success) {
+                showNotification('Ошибка загрузки данных сервиса', 'error');
+                console.error('API error:', result);
+                return;
+            }
+            
+            service = result.data.find(s => s.id === serviceId);
+            if (!service) {
+                showNotification(`Сервис не найден (ID: ${serviceId})`, 'error');
+                console.error('Service not found. Available services:', result.data);
+                return;
+            }
         }
         
         // Заполняем форму редактирования
         document.getElementById('editServiceId').value = service.id;
         document.getElementById('editServiceName').value = service.name || '';
         document.getElementById('editServiceCity').value = service.city || '';
-        document.getElementById('editServiceIp').value = service.ip;
-        document.getElementById('editServicePort').value = service.port;
-        document.getElementById('editServiceBackendPort').value = service.backend_port;
-        document.getElementById('editServicePgPort').value = service.pg_port;
+        
+        // Для данных из /api/bazars используем endpoint, для /api/status - прямые поля
+        const ip = service.ip || service.endpoint?.ip;
+        const port = service.port || service.endpoint?.port;
+        const backendPort = service.backend_port || service.endpoint?.backendPort;
+        const pgPort = service.pg_port || service.endpoint?.pgPort;
+        
+        document.getElementById('editServiceIp').value = ip;
+        document.getElementById('editServicePort').value = port;
+        document.getElementById('editServiceBackendPort').value = backendPort;
+        document.getElementById('editServicePgPort').value = pgPort;
         
         // Заполняем контакты
         if (service.contact_click) {
@@ -1152,6 +1166,7 @@ async function openEditServiceModal(serviceId) {
         
     } catch (error) {
         showNotification(`Ошибка: ${error.message}`, 'error');
+        console.error('Error in openEditServiceModal:', error);
     }
 }
 
