@@ -14,6 +14,9 @@ COPY styles.css /usr/share/nginx/html/
 COPY favicon.png /usr/share/nginx/html/
 COPY fon.jpg /usr/share/nginx/html/
 
+# Копируем GeoJSON файлы
+COPY Uzb /usr/share/nginx/html/Uzb/
+
 # Открываем порт
 EXPOSE 80
 

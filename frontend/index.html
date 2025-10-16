@@ -16,21 +16,11 @@
     <!-- Top Navigation -->
     <header class="top-nav">
         <div class="nav-container">
-            <div class="nav-brand">
-                <div class="brand-logo">
-                    <img src="favicon.png" alt="Bozor Logo">
-                </div>
-                <div class="brand-info">
-                    <h1>Bozor Monitoring</h1>
-                    <span class="brand-tag">Real-Time Analytics</span>
-                </div>
+            <div class="nav-time">
+                <span id="currentTime">--:--:--</span>
             </div>
             
             <div class="nav-actions">
-                <div class="nav-time">
-                    <i class="far fa-clock"></i>
-                    <span id="currentTime">--:--:--</span>
-                </div>
                 <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m" 
                    target="_blank" 
                    class="nav-btn">
@@ -40,23 +30,20 @@
                 <a href="http://192.168.168.36:9000/#!/home" 
                    target="_blank" 
                    class="nav-btn">
-                    <i class="fab fa-docker"></i>
+                    <i class="fas fa-cubes"></i>
                     <span data-i18n="nav.containers">Контейнеры</span>
                 </a>
                 <button id="addServiceBtn" class="nav-btn add-service-btn">
-                    <i class="fas fa-plus"></i>
-                    <span data-i18n="nav.addService">Добавить сервис</span>
+                    <i class="fas fa-plus-circle"></i>
+                    <span data-i18n="nav.addService">Добавить базар</span>
                 </button>
                 <button id="logsBtn" class="nav-btn logs-btn">
-                    <i class="fas fa-list"></i>
+                    <i class="fas fa-file-alt"></i>
                     <span data-i18n="nav.logs">Логи</span>
                 </button>
                 <button id="langToggle" class="nav-btn lang-toggle">
-                    <i class="fas fa-language"></i>
+                    <i class="fas fa-globe"></i>
                     <span id="currentLang">RU</span>
-                </button>
-                <button id="themeToggle" class="nav-btn theme-toggle">
-                    <i class="fas fa-moon"></i>
                 </button>
             </div>
         </div>
@@ -77,56 +64,53 @@
 
                 <div class="status-grid">
                     <div class="status-card total">
-                        <div class="status-header">
-                            <div class="status-icon-box">
-                                <i class="fas fa-cubes"></i>
+                        <div class="status-progress">
+                            <svg>
+                                <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="totalProgress"></circle>
+                            </svg>
+                            <div class="progress-text" id="totalProgressText">--/--</div>
+                        </div>
+                        <div class="status-card-info">
+                            <div class="status-card-title">Все базары</div>
+                            <div class="status-card-status">
+                                <div class="status-dot"></div>
+                                <span>Total</span>
                             </div>
-                            <div class="status-badge" data-i18n="dashboard.total">TOTAL</div>
-                        </div>
-                        <div class="status-body">
-                            <div class="status-value" id="totalBazars">--</div>
-                            <div class="status-label">Bozor</div>
-                        </div>
-                        <div class="status-footer">
-                            <span class="status-trend" data-i18n="dashboard.allBozor">All Bozor</span>
                         </div>
                     </div>
 
                     <div class="status-card online">
-                        <div class="status-header">
-                            <div class="status-icon-box">
-                                <i class="fas fa-circle-check"></i>
+                        <div class="status-progress">
+                            <svg>
+                                <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="onlineProgress"></circle>
+                            </svg>
+                            <div class="progress-text" id="onlineProgressText">--/--</div>
+                        </div>
+                        <div class="status-card-info">
+                            <div class="status-card-title">Онлайн</div>
+                            <div class="status-card-status">
+                                <div class="status-dot"></div>
+                                <span>Operational</span>
                             </div>
-                            <div class="status-badge success" data-i18n="dashboard.online">ACTIVE</div>
-                        </div>
-                        <div class="status-body">
-                            <div class="status-value" id="onlineBazars">--</div>
-                            <div class="status-label" data-i18n="dashboard.online">Online</div>
-                        </div>
-                        <div class="status-footer">
-                            <span class="status-trend success" data-i18n="dashboard.activeBozor">
-                                <i class="fas fa-signal"></i>
-                                Operational
-                            </span>
                         </div>
                     </div>
 
                     <div class="status-card offline">
-                        <div class="status-header">
-                            <div class="status-icon-box">
-                                <i class="fas fa-triangle-exclamation"></i>
+                        <div class="status-progress">
+                            <svg>
+                                <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="offlineProgress"></circle>
+                            </svg>
+                            <div class="progress-text" id="offlineProgressText">--/--</div>
+                        </div>
+                        <div class="status-card-info">
+                            <div class="status-card-title">Оффлайн</div>
+                            <div class="status-card-status">
+                                <div class="status-dot"></div>
+                                <span>Requires Action</span>
                             </div>
-                            <div class="status-badge danger" data-i18n="dashboard.offline">CRITICAL</div>
-                        </div>
-                        <div class="status-body">
-                            <div class="status-value" id="offlineBazars">--</div>
-                            <div class="status-label" data-i18n="dashboard.offline">Offline</div>
-                        </div>
-                        <div class="status-footer">
-                            <span class="status-trend danger" data-i18n="dashboard.downBozor">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Requires Action
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -169,14 +153,8 @@
             <!-- Geographic Map Button -->
             <section class="map-section">
                 <button id="openMapBtn" class="map-open-btn">
-                    <div class="map-btn-icon">
-                        <i class="fas fa-map-location-dot"></i>
-                    </div>
-                    <div class="map-btn-content">
-                        <h3 data-i18n="dashboard.showMap">Geographic Distribution</h3>
-                        <p data-i18n="dashboard.bozorEndpoints">View bozors on Uzbekistan map</p>
-                    </div>
-                    <i class="fas fa-chevron-right"></i>
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span data-i18n="dashboard.showMap">Показать карту</span>
                 </button>
             </section>
 
@@ -185,33 +163,85 @@
                 <div class="map-modal-overlay"></div>
                 <div class="map-modal-content">
                     <div class="map-modal-header">
-                        <div class="map-modal-title">
-                            <i class="fas fa-map-location-dot"></i>
-                            <h2>Geographic Distribution - Uzbekistan</h2>
-                        </div>
+                        <h2>Карта базаров</h2>
                         <div class="map-modal-actions">
-                            <button id="fullscreenMapBtn" class="map-modal-action-btn" title="Fullscreen">
+                            <button id="fullscreenMapBtn" class="map-modal-fullscreen" title="Полноэкранный режим">
                                 <i class="fas fa-expand"></i>
                             </button>
                             <button id="closeMapBtn" class="map-modal-close">
-                                <i class="fas fa-xmark"></i>
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
                     <div class="map-modal-body">
                         <div id="uzbekistanMap" class="map-view"></div>
-                        <div class="map-legend">
-                            <div class="legend-item">
-                                <div class="legend-marker online"></div>
-                                <span>Online</span>
+                        
+                        <!-- General Overview Sidebar -->
+                        <div class="general-overview">
+                            <div class="overview-header">
+                                <h3 data-i18n="dashboard.generalOverview">Общий обзор</h3>
+                                <button class="overview-toggle" id="overviewToggle">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
                             </div>
-                            <div class="legend-item">
-                                <div class="legend-marker offline"></div>
-                                <span>Offline</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-marker partial"></div>
-                                <span>Partial</span>
+                            <div class="overview-content" id="overviewContent">
+                                <div class="overview-section">
+                                    <div class="overview-section-header">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span data-i18n="dashboard.bazars">Базары</span>
+                                    </div>
+                                    <div class="overview-stats">
+                                        <div class="overview-stat">
+                                            <div class="stat-dot online"></div>
+                                            <span class="stat-label">Онлайн</span>
+                                            <span class="stat-value" id="overviewOnline">0</span>
+                                        </div>
+                                        <div class="overview-stat">
+                                            <div class="stat-dot offline"></div>
+                                            <span class="stat-label">Оффлайн</span>
+                                            <span class="stat-value" id="overviewOffline">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="overview-section">
+                                    <div class="overview-section-header">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span data-i18n="dashboard.api">API</span>
+                                    </div>
+                                    <div class="overview-stats">
+                                        <div class="overview-stat">
+                                            <div class="stat-dot online"></div>
+                                            <span class="stat-label">Онлайн</span>
+                                            <span class="stat-value" id="overviewApiOnline">0</span>
+                                        </div>
+                                        <div class="overview-stat">
+                                            <div class="stat-dot offline"></div>
+                                            <span class="stat-label">Оффлайн</span>
+                                            <span class="stat-value" id="overviewApiOffline">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="overview-section">
+                                    <div class="overview-section-header">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span data-i18n="dashboard.database">База данных</span>
+                                    </div>
+                                    <div class="overview-stats">
+                                        <div class="overview-stat">
+                                            <div class="stat-dot online"></div>
+                                            <span class="stat-label">Онлайн</span>
+                                            <span class="stat-value" id="overviewDbOnline">0</span>
+                                        </div>
+                                        <div class="overview-stat">
+                                            <div class="stat-dot offline"></div>
+                                            <span class="stat-label">Оффлайн</span>
+                                            <span class="stat-value" id="overviewDbOffline">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                             </div>
                         </div>
                     </div>

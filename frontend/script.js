@@ -37,6 +37,10 @@ const translations = {
         },
         dashboard: {
             systemOverview: 'Обзор системы',
+            generalOverview: 'Общий обзор',
+            bazars: 'Базары',
+            api: 'API',
+            database: 'База данных',
             refresh: 'Обновить',
             total: 'Всего',
             online: 'Онлайн',
@@ -58,6 +62,18 @@ const translations = {
             allLocations: 'Все локации',
             allStatuses: 'Все статусы',
             showMap: 'Показать карту'
+        },
+        cameras: {
+            title: 'Камеры',
+            total: 'Всего:',
+            online: 'Онлайн:',
+            offline: 'Оффлайн:',
+            rastaFood: 'RastaFood:',
+            peopleCounting: 'Подсчет людей:',
+            animals: 'Животные:',
+            vehicleCounting: 'Подсчет транспорта:',
+            dataUnavailable: 'Данные недоступны',
+            accessBozor: 'Access Bozor'
         },
         modal: {
             addService: {
@@ -133,6 +149,10 @@ const translations = {
         },
         dashboard: {
             systemOverview: 'Tizim ko\'rinishi',
+            generalOverview: 'Umumiy ko\'rinish',
+            bazars: 'Bozorlar',
+            api: 'API',
+            database: 'Ma\'lumotlar bazasi',
             refresh: 'Yangilash',
             total: 'Jami',
             online: 'Onlayn',
@@ -154,6 +174,18 @@ const translations = {
             allLocations: 'Barcha joylar',
             allStatuses: 'Barcha statuslar',
             showMap: 'Xaritani ko\'rsatish'
+        },
+        cameras: {
+            title: 'Kameralar',
+            total: 'Jami:',
+            online: 'Onlayn:',
+            offline: 'Oflayn:',
+            rastaFood: 'RastaFood:',
+            peopleCounting: 'Odamlar soni:',
+            animals: 'Hayvonlar:',
+            vehicleCounting: 'Transport soni:',
+            dataUnavailable: 'Ma\'lumot mavjud emas',
+            accessBozor: 'Bozorga kirish'
         },
         modal: {
             addService: {
@@ -219,21 +251,137 @@ const translations = {
             delete: 'O\'chirish',
             confirmDelete: 'Ushbu xizmatni o\'chirishni xohlaysizmi?'
         }
+    },
+    en: {
+        nav: {
+            analytics: 'Analytics',
+            containers: 'Containers',
+            addService: 'Add Bazar',
+            logs: 'Logs'
+        },
+        dashboard: {
+            systemOverview: 'System Overview',
+            generalOverview: 'General Overview',
+            bazars: 'Bazars',
+            api: 'API',
+            database: 'Database',
+            refresh: 'Refresh',
+            total: 'Total',
+            online: 'Online',
+            offline: 'Offline',
+            allBozor: 'All Bazars',
+            activeBozor: 'Active Bazars',
+            downBozor: 'Down Bazars',
+            liveData: 'Live Data',
+            bozorEndpoints: 'Bazar Endpoints',
+            establishingConnection: 'Establishing Connection',
+            fetchingData: 'Fetching bazar data from server...',
+            noDataAvailable: 'No Data Available',
+            checkConnection: 'Check server connection',
+            errorLoading: 'Error Loading',
+            tryAgain: 'Try refreshing the page',
+            search: 'Search by name or city...',
+            filterByCity: 'Filter by city',
+            filterByStatus: 'Filter by status',
+            allLocations: 'All locations',
+            allStatuses: 'All statuses',
+            showMap: 'Show Map'
+        },
+        cameras: {
+            title: 'Cameras',
+            total: 'Total:',
+            online: 'Online:',
+            offline: 'Offline:',
+            rastaFood: 'RastaFood:',
+            peopleCounting: 'People Counting:',
+            animals: 'Animals:',
+            vehicleCounting: 'Vehicle Counting:',
+            dataUnavailable: 'Data Unavailable',
+            accessBozor: 'Access Bozor'
+        },
+        modal: {
+            addService: {
+                title: 'Add New Bazar',
+                tabAdditional: 'Additional (contacts, coordinates)',
+                serviceName: 'Bazar Name',
+                city: 'City',
+                ipAddress: 'IP Address',
+                frontendPort: 'Frontend Port',
+                backendPort: 'Backend API Port',
+                pgPort: 'PostgreSQL Port',
+                contactInfo: 'Contact Information',
+                contactClickName: 'Click Contact Name',
+                contactClickNamePlaceholder: 'e.g. John Smith',
+                contactClick: 'Click Phone',
+                contactSccName: 'SCC Contact Name',
+                contactSccNamePlaceholder: 'e.g. Jane Doe',
+                contactScc: 'SCC Phone',
+                mapCoordinates: 'Map Coordinates',
+                latitude: 'Latitude',
+                longitude: 'Longitude',
+                save: 'Save Bazar',
+                cancel: 'Cancel'
+            },
+            logs: {
+                title: 'System Logs',
+                allStatuses: 'All Statuses',
+                online: 'Online',
+                offline: 'Offline',
+                recordsCount: 'Records Count',
+                download: 'Download',
+                loading: 'Loading logs...',
+                noLogs: 'No Logs',
+                logsWillAppear: 'Logs will appear when service status changes'
+            }
+        },
+        status: {
+            online: 'Online',
+            offline: 'Offline',
+            added: 'Added',
+            updated: 'Updated',
+            deleted: 'Deleted'
+        },
+        logs: {
+            previousStatus: 'Was',
+            newService: 'New service added to system',
+            serviceUpdated: 'Service updated',
+            serviceDeleted: 'Service deleted from system',
+            changes: 'Changes',
+            error: 'Error'
+        },
+        notifications: {
+            serviceAdded: 'Service successfully added!',
+            serviceDeleted: 'Service successfully deleted!',
+            errorAddingService: 'Error adding service',
+            errorDeletingService: 'Error deleting service',
+            logsDownloaded: 'Logs downloaded',
+            errorExport: 'Export error',
+            servicesOffline: 'services offline',
+            requireAttention: 'services require attention'
+        },
+        actions: {
+            delete: 'Delete',
+            confirmDelete: 'Are you sure you want to delete this service?'
+        }
     }
 };
 
 let currentLang = localStorage.getItem('language') || 'ru';
 
 const elements = {
-    totalBazars: document.getElementById('totalBazars'),
-    onlineBazars: document.getElementById('onlineBazars'),
-    offlineBazars: document.getElementById('offlineBazars'),
+    // Progress indicators
+    totalProgress: document.getElementById('totalProgress'),
+    totalProgressText: document.getElementById('totalProgressText'),
+    onlineProgress: document.getElementById('onlineProgress'),
+    onlineProgressText: document.getElementById('onlineProgressText'),
+    offlineProgress: document.getElementById('offlineProgress'),
+    offlineProgressText: document.getElementById('offlineProgressText'),
+    // Grid and filters
     bazarsGrid: document.getElementById('bazarsGrid'),
     searchInput: document.getElementById('searchInput'),
     cityFilter: document.getElementById('cityFilter'),
     statusFilter: document.getElementById('statusFilter'),
     refreshBtn: document.getElementById('refreshBtn'),
-    themeToggle: document.getElementById('themeToggle'),
     // Add Service Modal elements
     addServiceBtn: document.getElementById('addServiceBtn'),
     addServiceModal: document.getElementById('addServiceModal'),
@@ -323,16 +471,6 @@ function initLanguage() {
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
-
-function updateThemeIcon(theme) {
-    const icon = elements.themeToggle.querySelector('i');
-    if (theme === 'dark') {
-        icon.className = 'fas fa-moon';
-    } else {
-        icon.className = 'fas fa-sun';
-    }
 }
 
 function toggleTheme() {
@@ -340,7 +478,6 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
 }
 
 // ===============================================
@@ -387,6 +524,12 @@ async function loadAllBazars() {
         if (result.success) {
             bazarsData = result.data;
             filteredData = bazarsData;
+            
+            // Отладочная информация о структуре данных
+            console.log('Loaded bazars data:', bazarsData);
+            if (bazarsData.length > 0) {
+                console.log('First bazar structure:', bazarsData[0]);
+            }
             
             updateStats();
             populateCityFilter();
@@ -584,9 +727,21 @@ function updateStats() {
     const online = bazarsData.filter(b => b.status === 'online').length;
     const offline = total - online;
 
-    elements.totalBazars.textContent = total;
-    elements.onlineBazars.textContent = online;
-    elements.offlineBazars.textContent = offline;
+    // Update progress circles
+    updateProgressCircle(elements.totalProgress, total, total, elements.totalProgressText);
+    updateProgressCircle(elements.onlineProgress, online, total, elements.onlineProgressText);
+    updateProgressCircle(elements.offlineProgress, offline, total, elements.offlineProgressText);
+}
+
+function updateProgressCircle(circle, value, max, textElement) {
+    if (!circle || !textElement) return;
+    
+    const circumference = 2 * Math.PI * 34; // radius = 34
+    const percentage = max > 0 ? (value / max) * 100 : 0;
+    const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
+    
+    circle.style.strokeDasharray = strokeDasharray;
+    textElement.textContent = `${value}/${max}`;
 }
 
 function checkOfflineServices() {
@@ -731,19 +886,49 @@ function toggleEndpoints(toggleButton) {
 // ===============================================
 // Event Listeners
 // ===============================================
-elements.searchInput.addEventListener('input', applyFilters);
-elements.cityFilter.addEventListener('change', applyFilters);
-elements.statusFilter.addEventListener('change', applyFilters);
-elements.refreshBtn.addEventListener('click', () => {
-    const icon = elements.refreshBtn.querySelector('i');
-    icon.style.animation = 'spin 1s linear';
-    setTimeout(() => {
-        icon.style.animation = '';
-    }, 1000);
-    loadAllBazars();
+console.log('Setting up event listeners...', elements);
+
+// Initialize progress circles
+document.addEventListener('DOMContentLoaded', function() {
+    const circles = [elements.totalProgress, elements.onlineProgress, elements.offlineProgress];
+    circles.forEach(circle => {
+        if (circle) {
+            const circumference = 2 * Math.PI * 34;
+            circle.style.strokeDasharray = `0 ${circumference}`;
+        }
+    });
 });
-elements.themeToggle.addEventListener('click', toggleTheme);
-document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+
+if (elements.searchInput) {
+    elements.searchInput.addEventListener('input', applyFilters);
+}
+
+if (elements.cityFilter) {
+    elements.cityFilter.addEventListener('change', applyFilters);
+}
+
+if (elements.statusFilter) {
+    elements.statusFilter.addEventListener('change', applyFilters);
+}
+
+// Refresh button
+if (elements.refreshBtn) {
+    elements.refreshBtn.addEventListener('click', () => {
+        const icon = elements.refreshBtn.querySelector('i');
+        if (icon) {
+            icon.style.animation = 'spin 1s linear';
+            setTimeout(() => {
+                icon.style.animation = '';
+            }, 1000);
+        }
+        loadAllBazars();
+    });
+}
+
+const langToggle = document.getElementById('langToggle');
+if (langToggle) {
+    langToggle.addEventListener('click', toggleLanguage);
+}
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
@@ -766,6 +951,8 @@ document.addEventListener('keydown', (e) => {
 // ===============================================
 let uzbekistanMap = null;
 let cityMarkers = {};
+let uzbekistanBoundaries = null;
+let uzbekistanRegions = null;
 
 // Координаты базаров Узбекистана (из location.txt)
 const bazarLocations = {
@@ -797,7 +984,8 @@ function initMap() {
         zoomAnimation: true,
         zoomAnimationThreshold: 4,
         fadeAnimation: true,
-        markerZoomAnimation: true
+        markerZoomAnimation: true,
+        doubleClickZoom: false // Отключаем стандартный зум по двойному клику
     });
 
     // Добавляем тайлы карты (темная тема)
@@ -812,49 +1000,481 @@ function initMap() {
         [45.5, 73.2]  // Northeast
     );
     uzbekistanMap.setMaxBounds(bounds);
+    
+    // Добавляем обработчик двойного клика для сброса зума с плавной анимацией
+    uzbekistanMap.on('dblclick', function(e) {
+        // Анимация "погружения со спутника" - сначала отдаляемся, потом возвращаемся
+        uzbekistanMap.flyTo([41.3, 64.5], 6, {
+            duration: 1.5, // Длительность анимации в секундах
+            easeLinearity: 0.25, // Плавность анимации
+            animate: true
+        });
+    });
+    
+    // Загружаем границы Узбекистана
+    loadUzbekistanBoundaries();
+    
+    // Загружаем границы областей
+    loadUzbekistanRegions();
+}
+
+// Функция для загрузки границ Узбекистана
+function loadUzbekistanBoundaries() {
+    console.log('Начинаем загрузку границ Узбекистана...');
+    
+    fetch('Uzb/gadm41_UZB_0.json')
+        .then(response => {
+            console.log('Ответ сервера:', response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('GeoJSON данные получены:', data);
+            console.log('Количество features:', data.features ? data.features.length : 'неизвестно');
+            
+            // Создаем слой с границами
+            uzbekistanBoundaries = L.geoJSON(data, {
+                style: {
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillColor: 'transparent',
+                    fillOpacity: 0
+                },
+                onEachFeature: function(feature, layer) {
+                    // Добавляем всплывающую подсказку
+                    layer.bindPopup(`
+                        <div style="text-align: center;">
+                            <h4 style="margin: 0; color: #00bcd4;">${feature.properties.COUNTRY}</h4>
+                            <p style="margin: 5px 0; color: #666;">Границы Узбекистана</p>
+                        </div>
+                    `);
+                }
+            }).addTo(uzbekistanMap);
+            
+            console.log('Границы Узбекистана загружены и добавлены на карту');
+            console.log('uzbekistanBoundaries:', uzbekistanBoundaries);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки границ Узбекистана:', error);
+            console.error('Детали ошибки:', error.message);
+            
+            // Показываем пользователю уведомление об ошибке
+            if (uzbekistanMap) {
+                L.popup()
+                    .setLatLng([41.3, 64.5])
+                    .setContent(`
+                        <div style="text-align: center; color: #ff6b6b;">
+                            <h4>⚠️ Ошибка загрузки границ</h4>
+                            <p>Не удалось загрузить границы Узбекистана</p>
+                            <small>Проверьте консоль для деталей</small>
+                        </div>
+                    `)
+                    .openOn(uzbekistanMap);
+            }
+        });
+}
+
+// Функция для загрузки границ областей (Level-1)
+function loadUzbekistanRegions() {
+    console.log('Начинаем загрузку границ областей Узбекистана...');
+    
+    fetch('Uzb/gadm41_UZB_1.json')
+        .then(response => {
+            console.log('Ответ сервера (области):', response.status, response.statusText);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('GeoJSON данные областей получены:', data);
+            console.log('Количество областей:', data.features ? data.features.length : 'неизвестно');
+            
+            // Создаем слой с границами областей
+            uzbekistanRegions = L.geoJSON(data, {
+                style: {
+                    color: '#ffffff',
+                    weight: 3,
+                    opacity: 1,
+                    fillColor: 'transparent',
+                    fillOpacity: 0
+                },
+                onEachFeature: function(feature, layer) {
+                    // Получаем название области
+                    const regionName = feature.properties.NAME_1 || 'Неизвестная область';
+                    
+                    // Добавляем обработчик клика для показа статистики
+                    layer.on('click', function(e) {
+                        showRegionStatistics(regionName, e.latlng);
+                    });
+                    
+                    // Добавляем подсветку при наведении
+                    layer.on({
+                        mouseover: function(e) {
+                            const layer = e.target;
+                            layer.setStyle({
+                                weight: 4,
+                                opacity: 1,
+                                color: '#26c6da'
+                            });
+                        },
+                        mouseout: function(e) {
+                            uzbekistanRegions.resetStyle(e.target);
+                        }
+                    });
+                }
+            }).addTo(uzbekistanMap);
+            
+            console.log('Границы областей Узбекистана загружены и добавлены на карту');
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки границ областей Узбекистана:', error);
+            console.error('Детали ошибки:', error.message);
+            
+            // Показываем пользователю уведомление об ошибке
+            if (uzbekistanMap) {
+                L.popup()
+                    .setLatLng([41.3, 64.5])
+                    .setContent(`
+                        <div style="text-align: center; color: #ff6b6b;">
+                            <h4>⚠️ Ошибка загрузки областей</h4>
+                            <p>Не удалось загрузить границы областей</p>
+                            <small>Проверьте консоль для деталей</small>
+                        </div>
+                    `)
+                    .openOn(uzbekistanMap);
+            }
+        });
+}
+
+// Функция для показа статистики по области
+async function showRegionStatistics(regionName, latlng) {
+    console.log('Загрузка статистики для области:', regionName);
+    
+    // Получаем все базары из текущих данных
+    const allBazars = bazarsData || [];
+    
+    // Выводим все уникальные города для отладки
+    const uniqueCities = [...new Set(allBazars.map(b => b.city))];
+    console.log('Все города в базе:', uniqueCities);
+    console.log('Ищем область:', regionName);
+    console.log('Всего базаров в данных:', allBazars.length);
+    
+    // Функция для нормализации строки (убираем апострофы, акценты и приводим к нижнему регистру)
+    const normalize = (str) => {
+        return str.toLowerCase()
+            .replace(/['`']/g, '') // Убираем все виды апострофов
+            .replace(/\s+/g, '')   // Убираем все пробелы
+            .trim();
+    };
+    
+    // Фильтруем базары по области (используем city как область)
+    const regionBazars = allBazars.filter(bazar => {
+        // Пробуем найти соответствие по разным полям
+        const bazarCity = (bazar.city || '').trim();
+        const bazarName = bazar.name || '';
+        
+        const normalizedCity = normalize(bazarCity);
+        const normalizedRegion = normalize(regionName);
+        
+        // Специальная обработка для Ташкента
+        if (regionName === 'Toshkent') {
+            // Область Ташкент - исключаем ToshkentShahri
+            const match = (normalizedCity.includes('tashkent') || normalizedCity.includes('toshkent')) && 
+                   normalizedCity !== 'toshkentshahri' && !normalizedCity.includes('shahri');
+            if (match) {
+                console.log(`Базар ${bazar.name} подходит для области Toshkent (city: ${bazarCity})`);
+            }
+            return match;
+        } else if (regionName === 'ToshkentShahri') {
+            // Город Ташкент - только ToshkentShahri
+            const match = normalizedCity === 'toshkentshahri' || normalizedCity.includes('shahri');
+            if (match) {
+                console.log(`Базар ${bazar.name} подходит для города ToshkentShahri (city: ${bazarCity})`);
+            }
+            return match;
+        }
+        
+        // Сопоставляем названия областей с городами
+        const regionMapping = {
+            'andijon': 'andijon',
+            'buxoro': 'buxoro',
+            'fargona': 'fargona',
+            'jizzax': 'jizzax',
+            'namangan': 'namangan',
+            'navoiy': 'navoiy',
+            'qaraqalpaqstan': 'qaraqalpaqstan',
+            'qashqadaryo': 'qashqadaryo',
+            'samarqand': 'samarqand',
+            'sirdaryo': 'sirdaryo',
+            'surxondaryo': 'surxondaryo',
+            'xorazm': 'xorazm'
+        };
+        
+        const mappedRegion = regionMapping[normalizedRegion] || normalizedRegion;
+        const match = normalizedCity.includes(mappedRegion);
+        
+        if (match) {
+            console.log(`Базар ${bazar.name} подходит для области ${regionName} (city: ${bazarCity})`);
+        }
+        
+        return match;
+    });
+    
+    console.log(`Найдено базаров в области ${regionName}:`, regionBazars.length);
+    if (regionBazars.length > 0) {
+        console.log('Найденные базары:', regionBazars.map(b => ({ name: b.name, city: b.city })));
+    }
+    
+    // Собираем статистику по камерам
+    let totalCameras = 0;
+    let onlineCameras = 0;
+    let offlineCameras = 0;
+    let rastaFoodCameras = 0;
+    let peopleCountingCameras = 0;
+    let animalCameras = 0;
+    let vehicleCountingCameras = 0;
+    let loadedBazars = 0;
+    
+    // Загружаем статистику для каждого базара
+    for (const bazar of regionBazars) {
+        try {
+            let ip, backendPort;
+            
+            if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backendPort) {
+                ip = bazar.endpoint.ip;
+                backendPort = bazar.endpoint.backendPort;
+            } else if (bazar.endpoint && bazar.endpoint.ip && bazar.backend) {
+                ip = bazar.endpoint.ip;
+                backendPort = bazar.backend;
+            } else if (bazar.ipAddress && bazar.backendPort) {
+                ip = bazar.ipAddress;
+                backendPort = bazar.backendPort;
+            } else if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backend) {
+                ip = bazar.endpoint.ip;
+                backendPort = bazar.endpoint.backend;
+            }
+            
+            if (ip && backendPort) {
+                const cameraApiUrl = `http://${ip}:${backendPort}/api/cameras/statistics`;
+                
+                const response = await fetch(cameraApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    totalCameras += stats.totalCameras || 0;
+                    onlineCameras += stats.onlineCameras || 0;
+                    offlineCameras += stats.offlineCameras || 0;
+                    rastaFoodCameras += stats.rastaFoodCameras || 0;
+                    peopleCountingCameras += stats.peopleCountingCameras || 0;
+                    animalCameras += stats.animalCameras || 0;
+                    vehicleCountingCameras += stats.vehicleCountingCameras || 0;
+                    loadedBazars++;
+                }
+            }
+        } catch (error) {
+            console.warn(`Не удалось загрузить статистику для ${bazar.name}:`, error);
+        }
+    }
+    
+    // Создаем попап со статистикой
+    const popupContent = `
+        <div class="region-popup">
+            <div class="region-popup-header">
+                <h3 style="margin: 0 0 10px 0; color: #00bcd4; font-size: 18px;">
+                    ${regionName}
+                </h3>
+                <p style="margin: 0 0 15px 0; color: #8b97ab; font-size: 14px;">
+                    ${t('dashboard.bazars')}: ${regionBazars.length}
+                </p>
+            </div>
+            
+            ${loadedBazars > 0 ? `
+                <div class="region-popup-cameras">
+                    <div class="cameras-header">
+                        <i class="fas fa-video"></i>
+                        <span>${t('cameras.title')}</span>
+                    </div>
+                    
+                    <div class="camera-stats-grid">
+                        <div class="camera-stat">
+                            <span class="stat-label">${t('cameras.total')}:</span>
+                            <span class="stat-value">${totalCameras}</span>
+                        </div>
+                        <div class="camera-stat online">
+                            <span class="stat-label">${t('cameras.online')}:</span>
+                            <span class="stat-value">${onlineCameras}</span>
+                        </div>
+                        <div class="camera-stat offline">
+                            <span class="stat-label">${t('cameras.offline')}:</span>
+                            <span class="stat-value">${offlineCameras}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-types">
+                        <div class="camera-type">
+                            <i class="fas fa-utensils"></i>
+                            <span>${t('cameras.rastaFood')}: ${rastaFoodCameras}</span>
+                        </div>
+                        <div class="camera-type">
+                            <i class="fas fa-users"></i>
+                            <span>${t('cameras.peopleCounting')}: ${peopleCountingCameras}</span>
+                        </div>
+                        <div class="camera-type">
+                            <i class="fas fa-paw"></i>
+                            <span>${t('cameras.animals')}: ${animalCameras}</span>
+                        </div>
+                        <div class="camera-type">
+                            <i class="fas fa-car"></i>
+                            <span>${t('cameras.vehicleCounting')}: ${vehicleCountingCameras}</span>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div style="text-align: center; padding: 20px; color: #8b97ab;">
+                    <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p style="margin: 0;">${t('cameras.dataUnavailable')}</p>
+                </div>
+            `}
+        </div>
+    `;
+    
+    // Показываем попап
+    L.popup({
+        maxWidth: 350,
+        className: 'region-statistics-popup'
+    })
+    .setLatLng(latlng)
+    .setContent(popupContent)
+    .openOn(uzbekistanMap);
 }
 
 // Modal controls
-const mapModal = document.getElementById('mapModal');
-const openMapBtn = document.getElementById('openMapBtn');
-const closeMapBtn = document.getElementById('closeMapBtn');
-const fullscreenMapBtn = document.getElementById('fullscreenMapBtn');
-const mapModalOverlay = document.querySelector('.map-modal-overlay');
+let mapModal, openMapBtn, closeMapBtn, mapModalOverlay, fullscreenMapBtn, toggleBoundariesBtn;
+
+function initMapControls() {
+    console.log('=== Starting initMapControls ===');
+    
+    mapModal = document.getElementById('mapModal');
+    openMapBtn = document.getElementById('openMapBtn');
+    closeMapBtn = document.getElementById('closeMapBtn');
+    mapModalOverlay = document.querySelector('.map-modal-overlay');
+    fullscreenMapBtn = document.getElementById('fullscreenMapBtn');
+    toggleBoundariesBtn = document.getElementById('toggleBoundariesBtn');
+    
+    console.log('Map controls search results:', {
+        mapModal: mapModal,
+        openMapBtn: openMapBtn,
+        closeMapBtn: closeMapBtn,
+        mapModalOverlay: mapModalOverlay,
+        fullscreenMapBtn: fullscreenMapBtn
+    });
+    
+    if (openMapBtn) {
+        console.log('Adding click event to openMapBtn');
+        openMapBtn.addEventListener('click', function(e) {
+            console.log('=== Map button clicked! Event:', e);
+            e.preventDefault();
+            e.stopPropagation();
+            openMapModal();
+        });
+        console.log('Click event added successfully');
+    } else {
+        console.error('ERROR: openMapBtn not found in DOM!');
+    }
+    
+    if (closeMapBtn) {
+        closeMapBtn.addEventListener('click', closeMapModal);
+    }
+    if (mapModalOverlay) {
+        mapModalOverlay.addEventListener('click', closeMapModal);
+    }
+    
+    if (fullscreenMapBtn) {
+        fullscreenMapBtn.addEventListener('click', toggleFullscreen);
+    }
+    
+    if (toggleBoundariesBtn) {
+        toggleBoundariesBtn.addEventListener('click', toggleBoundaries);
+    }
+    
+    // Initialize overview panel toggle
+    const overviewToggle = document.getElementById('overviewToggle');
+    const overviewContent = document.getElementById('overviewContent');
+    
+    if (overviewToggle && overviewContent) {
+        overviewToggle.addEventListener('click', function() {
+            overviewContent.classList.toggle('collapsed');
+            overviewToggle.classList.toggle('collapsed');
+        });
+    }
+    
+    console.log('=== initMapControls completed ===');
+}
 
 function openMapModal() {
+    console.log('=== openMapModal() called ===');
+    console.log('mapModal element:', mapModal);
+    console.log('mapModal classes before:', mapModal ? mapModal.className : 'null');
+    
+    if (!mapModal) {
+        console.error('ERROR: mapModal is null! Cannot open map.');
+        return;
+    }
+    
+    console.log('Adding "active" class to modal...');
     mapModal.classList.add('active');
+    console.log('mapModal classes after:', mapModal.className);
+    
     document.body.style.overflow = 'hidden';
+    console.log('Body overflow set to hidden');
+    console.log('=== Map modal should be visible now ===');
     
     // Обновляем размер карты после открытия модального окна
     setTimeout(() => {
         if (uzbekistanMap) {
+            console.log('Invalidating map size...');
             uzbekistanMap.invalidateSize();
+        } else {
+            console.warn('uzbekistanMap is not initialized');
         }
     }, 100);
 }
 
 function closeMapModal() {
+    if (!mapModal) return;
     mapModal.classList.remove('active');
     mapModal.classList.remove('fullscreen');
     document.body.style.overflow = '';
-    
-    // Обновляем иконку кнопки
-    const icon = fullscreenMapBtn.querySelector('i');
-    icon.className = 'fas fa-expand';
+    updateFullscreenIcon();
 }
 
 function toggleFullscreen() {
-    mapModal.classList.toggle('fullscreen');
+    if (!mapModal) return;
     
-    // Обновляем иконку кнопки
-    const icon = fullscreenMapBtn.querySelector('i');
-    if (mapModal.classList.contains('fullscreen')) {
-        icon.className = 'fas fa-compress';
+    const isFullscreen = mapModal.classList.contains('fullscreen');
+    
+    if (isFullscreen) {
+        mapModal.classList.remove('fullscreen');
+        document.body.style.overflow = '';
     } else {
-        icon.className = 'fas fa-expand';
+        mapModal.classList.add('fullscreen');
+        document.body.style.overflow = 'hidden';
     }
     
-    // Обновляем размер карты
+    updateFullscreenIcon();
+    
+    // Перерисовываем карту после изменения размера
     setTimeout(() => {
         if (uzbekistanMap) {
             uzbekistanMap.invalidateSize();
@@ -862,35 +1482,69 @@ function toggleFullscreen() {
     }, 100);
 }
 
-openMapBtn.addEventListener('click', openMapModal);
-closeMapBtn.addEventListener('click', closeMapModal);
-fullscreenMapBtn.addEventListener('click', toggleFullscreen);
-mapModalOverlay.addEventListener('click', closeMapModal);
+function updateFullscreenIcon() {
+    if (!fullscreenMapBtn) return;
+    
+    const icon = fullscreenMapBtn.querySelector('i');
+    const isFullscreen = mapModal && mapModal.classList.contains('fullscreen');
+    
+    if (icon) {
+        icon.className = isFullscreen ? 'fas fa-compress' : 'fas fa-expand';
+    }
+}
+
+// Функция для переключения видимости границ Узбекистана
+function toggleBoundaries() {
+    if (!uzbekistanBoundaries || !toggleBoundariesBtn) return;
+    
+    const isVisible = uzbekistanMap.hasLayer(uzbekistanBoundaries);
+    
+    if (isVisible) {
+        // Скрываем границы
+        uzbekistanMap.removeLayer(uzbekistanBoundaries);
+        toggleBoundariesBtn.classList.remove('active');
+        toggleBoundariesBtn.title = 'Показать границы Узбекистана';
+    } else {
+        // Показываем границы
+        uzbekistanMap.addLayer(uzbekistanBoundaries);
+        toggleBoundariesBtn.classList.add('active');
+        toggleBoundariesBtn.title = 'Скрыть границы Узбекистана';
+    }
+}
+
+function accessBozor(ipAddress, frontendPort) {
+    // Открываем базар в новой вкладке
+    const url = `http://${ipAddress}:${frontendPort}`;
+    window.open(url, '_blank');
+}
 
 // Закрытие по Escape
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mapModal.classList.contains('active')) {
+    if (e.key === 'Escape' && mapModal && mapModal.classList.contains('active')) {
         closeMapModal();
-    }
-    
-    // F11 или F для полноэкранного режима
-    if ((e.key === 'f' || e.key === 'F') && mapModal.classList.contains('active') && !e.ctrlKey) {
-        e.preventDefault();
-        toggleFullscreen();
     }
 });
 
-function updateMapMarkers() {
+async function updateMapMarkers() {
     // Очищаем существующие маркеры
     Object.values(cityMarkers).forEach(marker => marker.remove());
     cityMarkers = {};
 
     // Группируем базары по локациям для определения статуса
     const locationGroups = {};
+    let totalOnline = 0, totalOffline = 0;
+    
     bazarsData.forEach(bazar => {
         // Используем координаты из БД, если они есть
         if (!bazar.latitude || !bazar.longitude) {
             return;
+        }
+        
+        // Подсчитываем общую статистику
+        if (bazar.status === 'online') {
+            totalOnline++;
+        } else {
+            totalOffline++;
         }
         
         const locationKey = `${bazar.latitude}_${bazar.longitude}`;
@@ -911,8 +1565,11 @@ function updateMapMarkers() {
         }
     });
 
+    // Обновляем боковую панель
+    updateOverviewPanel(totalOnline, totalOffline);
+
     // Добавляем маркер для каждой локации
-    Object.values(locationGroups).forEach((location, index) => {
+    for (const [locationKey, location] of Object.entries(locationGroups)) {
         const total = location.bazars.length;
         const online = location.online;
         const offline = location.offline;
@@ -965,13 +1622,174 @@ function updateMapMarkers() {
             iconAnchor: [18, 18]
         });
 
-        // Создаем детальный popup
-        const bazarsList = location.bazars.map(b => `
-            <div class="city-popup-stat">
-                <span class="label">${b.name || 'Unknown'}:</span>
-                <span class="value ${b.status}">${b.status === 'online' ? 'Online' : 'Offline'}</span>
-            </div>
-        `).join('');
+        // Получаем статистику камер для каждого базара
+        const bazarsWithCameras = [];
+        for (const bazar of location.bazars) {
+            let cameraStats = null;
+            try {
+                // Пробуем разные возможные структуры данных
+                let ip, backendPort;
+                
+                if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backendPort) {
+                    ip = bazar.endpoint.ip;
+                    backendPort = bazar.endpoint.backendPort;
+                } else if (bazar.endpoint && bazar.endpoint.ip && bazar.backend) {
+                    ip = bazar.endpoint.ip;
+                    backendPort = bazar.backend;
+                } else if (bazar.ipAddress && bazar.backendPort) {
+                    ip = bazar.ipAddress;
+                    backendPort = bazar.backendPort;
+                } else if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backend) {
+                    ip = bazar.endpoint.ip;
+                    backendPort = bazar.endpoint.backend;
+                }
+                
+                if (ip && backendPort) {
+                    const cameraApiUrl = `http://${ip}:${backendPort}/api/cameras/statistics`;
+                    console.log(`Fetching camera stats from: ${cameraApiUrl}`);
+                    
+                    const response = await fetch(cameraApiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        mode: 'cors'
+                    });
+                    
+                    console.log(`Response status for ${bazar.name}:`, response.status);
+                    
+                    if (response.ok) {
+                        cameraStats = await response.json();
+                        console.log(`Camera stats for ${bazar.name}:`, cameraStats);
+                    } else if (response.status === 401) {
+                        console.warn(`API requires authentication for ${bazar.name} (401 Unauthorized)`);
+                        // Попробуем без авторизации или с базовой авторизацией
+                        try {
+                            const retryResponse = await fetch(cameraApiUrl, {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' // Попробуем пустой токен
+                                },
+                                mode: 'cors'
+                            });
+                            
+                            if (retryResponse.ok) {
+                                cameraStats = await retryResponse.json();
+                                console.log(`Camera stats for ${bazar.name} (retry):`, cameraStats);
+                            } else {
+                                console.warn(`API still requires authentication for ${bazar.name}`);
+                            }
+                        } catch (retryError) {
+                            console.warn(`Retry failed for ${bazar.name}:`, retryError);
+                        }
+                    } else {
+                        console.warn(`API returned ${response.status} for ${bazar.name}`);
+                    }
+                } else {
+                    console.warn(`Missing backend port or IP for ${bazar.name}:`, {
+                        bazar: bazar,
+                        endpoint: bazar.endpoint,
+                        'endpoint.backendPort': bazar.endpoint?.backendPort,
+                        backend: bazar.backend,
+                        ipAddress: bazar.ipAddress,
+                        backendPort: bazar.backendPort
+                    });
+                }
+            } catch (error) {
+                console.warn(`Failed to fetch camera stats for ${bazar.name}:`, error);
+            }
+            
+            bazarsWithCameras.push({
+                ...bazar,
+                cameraStats
+            });
+        }
+
+        // Создаем детальный popup с информацией о камерах
+        const bazarsList = bazarsWithCameras.map(b => {
+            let camerasInfo = '';
+            if (b.cameraStats) {
+                camerasInfo = `
+                    <div class="city-popup-cameras">
+                        <div class="cameras-header">
+                            <i class="fas fa-video"></i>
+                            <span>${t('cameras.title')}</span>
+                        </div>
+                        <div class="cameras-stats">
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.total')}</span>
+                                <span class="value">${b.cameraStats.totalCameras}</span>
+                            </div>
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.online')}</span>
+                                <span class="value online">${b.cameraStats.onlineCameras}</span>
+                            </div>
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.offline')}</span>
+                                <span class="value offline">${b.cameraStats.offlineCameras}</span>
+                            </div>
+                            ${b.cameraStats.rastaFoodCameras > 0 ? `
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.rastaFood')}</span>
+                                <span class="value">${b.cameraStats.rastaFoodCameras}</span>
+                            </div>
+                            ` : ''}
+                            ${b.cameraStats.peopleCountingCameras > 0 ? `
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.peopleCounting')}</span>
+                                <span class="value">${b.cameraStats.peopleCountingCameras}</span>
+                            </div>
+                            ` : ''}
+                            ${b.cameraStats.animalCameras > 0 ? `
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.animals')}</span>
+                                <span class="value">${b.cameraStats.animalCameras}</span>
+                            </div>
+                            ` : ''}
+                            ${b.cameraStats.vehicleCountingCameras > 0 ? `
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.vehicleCounting')}</span>
+                                <span class="value">${b.cameraStats.vehicleCountingCameras}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                camerasInfo = `
+                    <div class="city-popup-cameras">
+                        <div class="cameras-header">
+                            <i class="fas fa-video"></i>
+                            <span>${t('cameras.title')}</span>
+                        </div>
+                        <div class="cameras-stats">
+                            <div class="camera-stat">
+                                <span class="label">${t('cameras.dataUnavailable')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="bazar-info">
+                    <div class="bazar-header">
+                        <div class="bazar-name">${b.name || 'Unknown'}</div>
+                        <div class="bazar-status ${b.status}">${b.status === 'online' ? t('dashboard.online') : t('dashboard.offline')}</div>
+                    </div>
+                    ${camerasInfo}
+                    <div class="bazar-actions">
+                        <button class="access-bozor-btn" onclick="accessBozor('${b.endpoint.ip}', ${b.endpoint.port})">
+                            <i class="fas fa-external-link-alt"></i>
+                            ${t('cameras.accessBozor')}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
         
         const popupContent = `
             <div class="city-popup">
@@ -998,7 +1816,9 @@ function updateMapMarkers() {
                         <span class="value offline">${offline}</span>
                     </div>
                     <hr style="border: none; border-top: 1px solid rgba(100, 116, 139, 0.3); margin: 0.75rem 0;">
-                    ${bazarsList}
+                    <div class="bazars-list">
+                        ${bazarsList}
+                    </div>
                 </div>
             </div>
         `;
@@ -1006,6 +1826,12 @@ function updateMapMarkers() {
         // Добавляем маркер на карту
         const marker = L.marker([location.coords.lat, location.coords.lng], { icon })
             .bindPopup(popupContent)
+            .bindTooltip(location.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -35],
+                className: 'custom-tooltip'
+            })
             .addTo(uzbekistanMap);
 
         // При клике на маркер - центрируем карту с плавной анимацией
@@ -1016,8 +1842,28 @@ function updateMapMarkers() {
             });
         });
 
-        cityMarkers[`${location.name}_${index}`] = marker;
-    });
+        cityMarkers[`${location.name}_${Object.keys(cityMarkers).length}`] = marker;
+    }
+}
+
+function updateOverviewPanel(online, offline) {
+    const overviewOnline = document.getElementById('overviewOnline');
+    const overviewOffline = document.getElementById('overviewOffline');
+    const overviewApiOnline = document.getElementById('overviewApiOnline');
+    const overviewApiOffline = document.getElementById('overviewApiOffline');
+    const overviewDbOnline = document.getElementById('overviewDbOnline');
+    const overviewDbOffline = document.getElementById('overviewDbOffline');
+    
+    if (overviewOnline) overviewOnline.textContent = online;
+    if (overviewOffline) overviewOffline.textContent = offline;
+    
+    // API статус - считаем количество онлайн/оффлайн API для всех базаров
+    if (overviewApiOnline) overviewApiOnline.textContent = online; // Количество онлайн API = количеству онлайн базаров
+    if (overviewApiOffline) overviewApiOffline.textContent = offline; // Количество оффлайн API = количеству оффлайн базаров
+    
+    // БД статус - считаем количество онлайн/оффлайн БД для всех базаров
+    if (overviewDbOnline) overviewDbOnline.textContent = online; // Количество онлайн БД = количеству онлайн базаров
+    if (overviewDbOffline) overviewDbOffline.textContent = offline; // Количество оффлайн БД = количеству оффлайн базаров
 }
 
 // ===============================================
@@ -1443,16 +2289,30 @@ async function downloadLogs() {
 // Event Listeners for Modals
 // ===============================================
 // Add Service Modal
-elements.addServiceBtn.addEventListener('click', openAddServiceModal);
-elements.closeAddServiceBtn.addEventListener('click', closeAddServiceModal);
+if (elements.addServiceBtn) {
+    elements.addServiceBtn.addEventListener('click', openAddServiceModal);
+}
+if (elements.closeAddServiceBtn) {
+    elements.closeAddServiceBtn.addEventListener('click', closeAddServiceModal);
+}
 
 // Edit Service Modal
-document.getElementById('closeEditServiceBtn').addEventListener('click', closeEditServiceModal);
-document.getElementById('cancelEditService').addEventListener('click', closeEditServiceModal);
+const closeEditServiceBtn = document.getElementById('closeEditServiceBtn');
+if (closeEditServiceBtn) {
+    closeEditServiceBtn.addEventListener('click', closeEditServiceModal);
+}
+const cancelEditService = document.getElementById('cancelEditService');
+if (cancelEditService) {
+    cancelEditService.addEventListener('click', closeEditServiceModal);
+}
 
 // Logs Modal
-elements.logsBtn.addEventListener('click', openLogsModal);
-elements.closeLogsBtn.addEventListener('click', closeLogsModal);
+if (elements.logsBtn) {
+    elements.logsBtn.addEventListener('click', openLogsModal);
+}
+if (elements.closeLogsBtn) {
+    elements.closeLogsBtn.addEventListener('click', closeLogsModal);
+}
 
 // Закрытие по клику на overlay
 document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
@@ -1466,161 +2326,194 @@ document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
 });
 
 // Раскрытие/скрытие дополнительных полей
-document.getElementById('toggleAdditional').addEventListener('click', function() {
-    const content = document.getElementById('additionalContent');
-    const button = this;
-    
-    button.classList.toggle('active');
-    content.classList.toggle('active');
-});
+const toggleAdditional = document.getElementById('toggleAdditional');
+if (toggleAdditional) {
+    toggleAdditional.addEventListener('click', function() {
+        const content = document.getElementById('additionalContent');
+        const button = this;
+        
+        button.classList.toggle('active');
+        content.classList.toggle('active');
+    });
+}
 
 // Раскрытие/скрытие дополнительных полей в форме редактирования
-document.getElementById('toggleEditAdditional').addEventListener('click', function() {
-    const content = document.getElementById('editAdditionalContent');
-    const button = this;
-    
-    button.classList.toggle('active');
-    content.classList.toggle('active');
-});
+const toggleEditAdditional = document.getElementById('toggleEditAdditional');
+if (toggleEditAdditional) {
+    toggleEditAdditional.addEventListener('click', function() {
+        const content = document.getElementById('editAdditionalContent');
+        const button = this;
+        
+        button.classList.toggle('active');
+        content.classList.toggle('active');
+    });
+}
 
 // Форма добавления сервиса
-elements.addServiceForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(elements.addServiceForm);
-    const serviceData = {
-        name: formData.get('name'),
-        city: formData.get('city'),
-        ip: formData.get('ip'),
-        port: parseInt(formData.get('port')),
-        backend_port: parseInt(formData.get('backend_port')),
-        pg_port: parseInt(formData.get('pg_port'))
-    };
-    
-    // Добавляем контакты если заполнены
-    const contactClick = formData.get('contact_click');
-    const contactClickName = formData.get('contact_click_name');
-    const contactScc = formData.get('contact_scc');
-    const contactSccName = formData.get('contact_scc_name');
-    
-    if (contactClick && contactClick.trim()) {
-        serviceData.contact_click = '+998' + contactClick.trim();
-    }
-    if (contactClickName && contactClickName.trim()) {
-        serviceData.contact_click_name = contactClickName.trim();
-    }
-    if (contactScc && contactScc.trim()) {
-        serviceData.contact_scc = '+998' + contactScc.trim();
-    }
-    if (contactSccName && contactSccName.trim()) {
-        serviceData.contact_scc_name = contactSccName.trim();
-    }
-    
-    // Добавляем координаты если заполнены
-    const latitude = formData.get('latitude');
-    const longitude = formData.get('longitude');
-    if (latitude && latitude.trim()) {
-        serviceData.latitude = parseFloat(latitude);
-    }
-    if (longitude && longitude.trim()) {
-        serviceData.longitude = parseFloat(longitude);
-    }
-    
-    addService(serviceData);
-});
+if (elements.addServiceForm) {
+    elements.addServiceForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(elements.addServiceForm);
+        const serviceData = {
+            name: formData.get('name'),
+            city: formData.get('city'),
+            ip: formData.get('ip'),
+            port: parseInt(formData.get('port')),
+            backend_port: parseInt(formData.get('backend_port')),
+            pg_port: parseInt(formData.get('pg_port'))
+        };
+        
+        // Добавляем контакты если заполнены
+        const contactClick = formData.get('contact_click');
+        const contactClickName = formData.get('contact_click_name');
+        const contactScc = formData.get('contact_scc');
+        const contactSccName = formData.get('contact_scc_name');
+        
+        if (contactClick && contactClick.trim()) {
+            serviceData.contact_click = '+998' + contactClick.trim();
+        }
+        if (contactClickName && contactClickName.trim()) {
+            serviceData.contact_click_name = contactClickName.trim();
+        }
+        if (contactScc && contactScc.trim()) {
+            serviceData.contact_scc = '+998' + contactScc.trim();
+        }
+        if (contactSccName && contactSccName.trim()) {
+            serviceData.contact_scc_name = contactSccName.trim();
+        }
+        
+        // Добавляем координаты если заполнены
+        const latitude = formData.get('latitude');
+        const longitude = formData.get('longitude');
+        if (latitude && latitude.trim()) {
+            serviceData.latitude = parseFloat(latitude);
+        }
+        if (longitude && longitude.trim()) {
+            serviceData.longitude = parseFloat(longitude);
+        }
+        
+        addService(serviceData);
+    });
+}
 
 // Кнопка отмены формы
-document.getElementById('cancelAddService').addEventListener('click', () => {
-    elements.addServiceForm.reset();
-    closeAddServiceModal();
-});
+const cancelAddService = document.getElementById('cancelAddService');
+if (cancelAddService) {
+    cancelAddService.addEventListener('click', () => {
+        if (elements.addServiceForm) {
+            elements.addServiceForm.reset();
+        }
+        closeAddServiceModal();
+    });
+}
 
 // Форма редактирования сервиса
-document.getElementById('editServiceForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(document.getElementById('editServiceForm'));
-    const serviceId = parseInt(document.getElementById('editServiceId').value);
-    
-    if (isNaN(serviceId)) {
-        showNotification('Ошибка: ID сервиса не определен. Попробуйте открыть форму заново.', 'error');
-        return;
-    }
-    
-    const serviceData = {
-        name: formData.get('name'),
-        city: formData.get('city'),
-        ip: formData.get('ip'),
-        port: parseInt(formData.get('port')),
-        backend_port: parseInt(formData.get('backend_port')),
-        pg_port: parseInt(formData.get('pg_port'))
-    };
-    
-    // Добавляем контакты если заполнены
-    const contactClick = formData.get('contact_click');
-    const contactClickName = formData.get('contact_click_name');
-    const contactScc = formData.get('contact_scc');
-    const contactSccName = formData.get('contact_scc_name');
-    
-    if (contactClick && contactClick.trim()) {
-        serviceData.contact_click = '+998' + contactClick.trim();
-    } else {
-        serviceData.contact_click = null;
-    }
-    if (contactClickName && contactClickName.trim()) {
-        serviceData.contact_click_name = contactClickName.trim();
-    } else {
-        serviceData.contact_click_name = null;
-    }
-    if (contactScc && contactScc.trim()) {
-        serviceData.contact_scc = '+998' + contactScc.trim();
-    } else {
-        serviceData.contact_scc = null;
-    }
-    if (contactSccName && contactSccName.trim()) {
-        serviceData.contact_scc_name = contactSccName.trim();
-    } else {
-        serviceData.contact_scc_name = null;
-    }
-    
-    // Добавляем координаты если заполнены
-    const latitude = formData.get('latitude');
-    const longitude = formData.get('longitude');
-    if (latitude && latitude.trim()) {
-        serviceData.latitude = parseFloat(latitude);
-    } else {
-        serviceData.latitude = null;
-    }
-    if (longitude && longitude.trim()) {
-        serviceData.longitude = parseFloat(longitude);
-    } else {
-        serviceData.longitude = null;
-    }
-    
-    updateService(serviceId, serviceData);
-});
+const editServiceForm = document.getElementById('editServiceForm');
+if (editServiceForm) {
+    editServiceForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(editServiceForm);
+        const serviceId = parseInt(document.getElementById('editServiceId').value);
+        
+        if (isNaN(serviceId)) {
+            showNotification('Ошибка: ID сервиса не определен. Попробуйте открыть форму заново.', 'error');
+            return;
+        }
+        
+        const serviceData = {
+            name: formData.get('name'),
+            city: formData.get('city'),
+            ip: formData.get('ip'),
+            port: parseInt(formData.get('port')),
+            backend_port: parseInt(formData.get('backend_port')),
+            pg_port: parseInt(formData.get('pg_port'))
+        };
+        
+        // Добавляем контакты если заполнены
+        const contactClick = formData.get('contact_click');
+        const contactClickName = formData.get('contact_click_name');
+        const contactScc = formData.get('contact_scc');
+        const contactSccName = formData.get('contact_scc_name');
+        
+        if (contactClick && contactClick.trim()) {
+            serviceData.contact_click = '+998' + contactClick.trim();
+        } else {
+            serviceData.contact_click = null;
+        }
+        if (contactClickName && contactClickName.trim()) {
+            serviceData.contact_click_name = contactClickName.trim();
+        } else {
+            serviceData.contact_click_name = null;
+        }
+        if (contactScc && contactScc.trim()) {
+            serviceData.contact_scc = '+998' + contactScc.trim();
+        } else {
+            serviceData.contact_scc = null;
+        }
+        if (contactSccName && contactSccName.trim()) {
+            serviceData.contact_scc_name = contactSccName.trim();
+        } else {
+            serviceData.contact_scc_name = null;
+        }
+        
+        // Добавляем координаты если заполнены
+        const latitude = formData.get('latitude');
+        const longitude = formData.get('longitude');
+        if (latitude && latitude.trim()) {
+            serviceData.latitude = parseFloat(latitude);
+        } else {
+            serviceData.latitude = null;
+        }
+        if (longitude && longitude.trim()) {
+            serviceData.longitude = parseFloat(longitude);
+        } else {
+            serviceData.longitude = null;
+        }
+        
+        updateService(serviceId, serviceData);
+    });
+}
 
 // Кнопка удаления в форме редактирования
-document.getElementById('deleteEditService').addEventListener('click', () => {
-    const serviceId = parseInt(document.getElementById('editServiceId').value);
-    closeEditServiceModal();
-    deleteService(serviceId);
-});
+const deleteEditService = document.getElementById('deleteEditService');
+if (deleteEditService) {
+    deleteEditService.addEventListener('click', () => {
+        const serviceId = parseInt(document.getElementById('editServiceId').value);
+        closeEditServiceModal();
+        deleteService(serviceId);
+    });
+}
 
 // Фильтры логов
-elements.logStatusFilter.addEventListener('change', loadLogsList);
-elements.logLimit.addEventListener('change', loadLogsList);
+if (elements.logStatusFilter) {
+    elements.logStatusFilter.addEventListener('change', loadLogsList);
+}
+if (elements.logLimit) {
+    elements.logLimit.addEventListener('change', loadLogsList);
+}
 
 // Скачивание логов
-document.getElementById('downloadLogsBtn').addEventListener('click', downloadLogs);
+const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+if (downloadLogsBtn) {
+    downloadLogsBtn.addEventListener('click', downloadLogs);
+}
 
 // ===============================================
 // Initialization
 // ===============================================
+console.log('=== Starting application initialization ===');
 initLanguage();
 initTheme();
 initMap();
+
+// Инициализируем элементы карты после загрузки DOM
+console.log('DOM loaded, initializing map controls...');
+initMapControls();
+
 loadAllBazars();
+console.log('=== Application initialization complete ===');
 
 // Optional: Auto-refresh every 60 seconds
 // setInterval(loadAllBazars, 60000);
