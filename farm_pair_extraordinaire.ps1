@@ -49,7 +49,7 @@ for ($i = 1; $i -le $Count; $i++) {
         git checkout -b $branchName 2>&1 | Out-Null
         
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "  Failed to create branch (might already exist)" -ForegroundColor Red
+            Write-Host "  [FAIL] Failed to create branch (might already exist)" -ForegroundColor Red
             $failedCount++
             continue
         }
@@ -69,10 +69,19 @@ for ($i = 1; $i -le $Count; $i++) {
                 # Stage changes
                 git add $readmePath 2>&1 | Out-Null
                 
-                # Create commit with co-author
-                $commitMessage = "docs: auto-update for Pair Extraordinaire PR #$i`n`nCo-authored-by: $CoAuthorName <$CoAuthorEmail>"
+                # Create commit with co-author (using here-string for proper formatting)
+                $commitFile = [System.IO.Path]::GetTempFileName()
+                $commitContent = @"
+docs: auto-update for Pair Extraordinaire PR #$i
+
+Co-authored-by: $CoAuthorName <$CoAuthorEmail>
+"@
+                Set-Content -Path $commitFile -Value $commitContent -NoNewline -Encoding UTF8
                 
-                git commit -m $commitMessage 2>&1 | Out-Null
+                git commit -F $commitFile 2>&1 | Out-Null
+                
+                # Clean up temp file
+                Remove-Item $commitFile -Force -ErrorAction SilentlyContinue
                 
                 if ($LASTEXITCODE -eq 0) {
                     # Push branch
@@ -81,64 +90,79 @@ for ($i = 1; $i -le $Count; $i++) {
                     if ($LASTEXITCODE -eq 0) {
                         $createdBranches += $branchName
                         $successCount++
-                        Write-Host "  ✓ Branch created and pushed successfully" -ForegroundColor Green
+                        Write-Host "  [OK] Branch created and pushed successfully" -ForegroundColor Green
                         
                         # Create PR if GitHub CLI is available
                         if ($ghInstalled) {
                             $prTitle = "docs: auto-update for Pair Extraordinaire PR #$i"
-                            $prBody = "Auto-generated PR for Pair Extraordinaire achievement.`n`nCo-authored-by: $CoAuthorName <$CoAuthorEmail>"
+                            
+                            # Create PR body file for proper multi-line content
+                            $prBodyFile = [System.IO.Path]::GetTempFileName()
+                            $prBodyContent = @"
+Auto-generated PR for Pair Extraordinaire achievement.
+
+Co-authored-by: $CoAuthorName <$CoAuthorEmail>
+"@
+                            Set-Content -Path $prBodyFile -Value $prBodyContent -NoNewline -Encoding UTF8
                             
                             Write-Host "  Creating PR..." -ForegroundColor Yellow
-                            $prResult = gh pr create --title $prTitle --body $prBody --base master --head $branchName 2>&1
+                            $prResult = gh pr create --title $prTitle --body-file $prBodyFile --base master --head $branchName 2>&1
                             
+                            # Clean up temp file
+                            Remove-Item $prBodyFile -Force -ErrorAction SilentlyContinue
+                            
+                            $prNumber = $null
                             if ($LASTEXITCODE -eq 0) {
-                                Write-Host "  ✓ PR created" -ForegroundColor Green
+                                Write-Host "  [OK] PR created" -ForegroundColor Green
                                 
                                 # Extract PR number from output
-                                $prNumber = ($prResult -match 'pull/(\d+)') | ForEach-Object { $matches[1] }
+                                if ($prResult -match 'pull/(\d+)') {
+                                    $prNumber = $matches[1]
+                                }
                                 
                                 if ($prNumber) {
                                     Write-Host "  Merging PR #$prNumber..." -ForegroundColor Yellow
                                     gh pr merge $prNumber --merge --delete-branch 2>&1 | Out-Null
                                     
                                     if ($LASTEXITCODE -eq 0) {
-                                        Write-Host "  ✓ PR merged and branch deleted" -ForegroundColor Green
+                                        Write-Host "  [OK] PR merged and branch deleted" -ForegroundColor Green
+                                        
+                                        # Clean up local branch
+                                        git branch -D $branchName 2>&1 | Out-Null
                                     } else {
                                         Write-Host "  ⚠ PR created but merge failed" -ForegroundColor Yellow
                                     }
+                                } else {
+                                    Write-Host "  ⚠ Could not extract PR number from output" -ForegroundColor Yellow
                                 }
                             } else {
-                                Write-Host "  ⚠ Failed to create PR (check GitHub CLI auth)" -ForegroundColor Yellow
+                                Write-Host "  [WARN] Failed to create PR (check GitHub CLI auth)" -ForegroundColor Yellow
+                                Write-Host "  Error: $prResult" -ForegroundColor Red
                             }
                         }
                     } else {
-                        Write-Host "  ✗ Failed to push branch" -ForegroundColor Red
-                        $failedCount++
-                    }
-                } else {
-                    Write-Host "  ✗ Failed to create commit" -ForegroundColor Red
+                    Write-Host "  [FAIL] Failed to push branch" -ForegroundColor Red
                     $failedCount++
                 }
             } else {
-                Write-Host "  ⚠ Branch already processed, skipping" -ForegroundColor Yellow
+                Write-Host "  [FAIL] Failed to create commit" -ForegroundColor Red
+                    $failedCount++
+                }
+            } else {
+                Write-Host "  [SKIP] Branch already processed, skipping" -ForegroundColor Yellow
                 git checkout master 2>&1 | Out-Null
                 git branch -D $branchName 2>&1 | Out-Null
             }
         } else {
-            Write-Host "  ✗ README.md not found" -ForegroundColor Red
+            Write-Host "  [FAIL] README.md not found" -ForegroundColor Red
             $failedCount++
         }
         
         # Return to master
         git checkout master 2>&1 | Out-Null
         
-        # Clean up local branch if PR was merged
-        if ($ghInstalled -and $prNumber) {
-            git branch -D $branchName 2>&1 | Out-Null
-        }
-        
     } catch {
-        Write-Host "  ✗ Error: $_" -ForegroundColor Red
+        Write-Host "  [ERROR] Error: $_" -ForegroundColor Red
         $failedCount++
         git checkout master 2>&1 | Out-Null
     }
@@ -174,8 +198,8 @@ if (-not $ghInstalled) {
 
 Write-Host ""
 Write-Host "Achievement progress:" -ForegroundColor Yellow
-Write-Host "  🥉 Bronze: 1 merged PR" -ForegroundColor White
-Write-Host "  🥈 Silver: 10 merged PRs" -ForegroundColor White
-Write-Host "  🥇 Gold: 24 merged PRs" -ForegroundColor White
+Write-Host "  Bronze: 1 merged PR" -ForegroundColor White
+Write-Host "  Silver: 10 merged PRs" -ForegroundColor White
+Write-Host "  Gold: 24 merged PRs" -ForegroundColor White
 Write-Host ""
 
