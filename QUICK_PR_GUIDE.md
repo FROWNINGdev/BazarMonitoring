@@ -1,5 +1,21 @@
 # 🚀 Quick Guide: Creating PRs for Pair Extraordinaire
 
+> **Важно**: Все PRs должны быть **merged** (не просто созданы) для засчета в достижение!
+
+## 📋 Что засчитывается:
+
+✅ **Коммит с Co-authored-by**:
+```
+Co-authored-by: asadullokhn <asadullokhnurullev@gmail.com>
+```
+
+✅ **Code Review** (approve PR):
+- Оставьте комментарий на PR
+- Нажмите "Approve"
+
+✅ **PR смержен кем-то другим**:
+- Кто-то другой смержил ваш PR
+
 ## 📊 Current Status
 
 - ✅ **Bronze Level**: 1 merged PR (ACHIEVED)
