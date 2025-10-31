@@ -7,6 +7,8 @@ param(
     [string]$CoAuthorName = "asadullokhn"
 )
 
+# Default co-author: asadullokhn <asadullokhnurullev@gmail.com>
+
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "Pair Extraordinaire Achievement Farmer" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
