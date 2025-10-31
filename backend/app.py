@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_restx import Api, Resource, fields, Namespace
 from datetime import datetime
 import requests
@@ -39,6 +40,7 @@ api = Api(
 )
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Модели базы данных
 class BazarLog(db.Model):
@@ -78,6 +80,7 @@ class BazarStatus(db.Model):
     bazar_port = db.Column(db.Integer, nullable=False)
     backend_port = db.Column(db.Integer, nullable=False)
     pg_port = db.Column(db.Integer, nullable=False)
+    stream_port = db.Column(db.Integer)  # Порт Stream
     city = db.Column(db.String(100))
     status = db.Column(db.String(20), nullable=False)  # online/offline
     last_online = db.Column(db.DateTime)
@@ -101,6 +104,7 @@ class BazarStatus(db.Model):
             'port': self.bazar_port,
             'backend_port': self.backend_port,
             'pg_port': self.pg_port,
+            'stream_port': self.stream_port,
             'city': self.city,
             'status': self.status,
             'last_online': self.last_online.isoformat() if self.last_online else None,
@@ -167,6 +171,7 @@ service_model = api.model('Service', {
     'port': fields.Integer(required=True, description='Порт фронтенда'),
     'backend_port': fields.Integer(required=True, description='Порт backend API'),
     'pg_port': fields.Integer(required=True, description='Порт PostgreSQL'),
+    'stream_port': fields.Integer(description='Порт Stream'),
     'city': fields.String(description='Город'),
     'contact_click': fields.String(description='Контакт Click (+998XXXXXXXXX)'),
     'contact_click_name': fields.String(description='Имя контакта Click'),
@@ -183,6 +188,7 @@ service_response_model = api.model('ServiceResponse', {
     'port': fields.Integer(description='Порт фронтенда'),
     'backend_port': fields.Integer(description='Порт backend API'),
     'pg_port': fields.Integer(description='Порт PostgreSQL'),
+    'stream_port': fields.Integer(description='Порт Stream'),
     'city': fields.String(description='Город'),
     'status': fields.String(description='Статус'),
     'last_online': fields.DateTime(description='Время последнего online'),
@@ -469,6 +475,119 @@ def get_statistics():
         }
     })
 
+@app.route('/api/cameras/statistics', methods=['GET'])
+def get_cameras_statistics():
+    """Получить общую статистику по камерам всех базаров"""
+    try:
+        # Получаем все сервисы из БД
+        services = BazarStatus.query.all()
+        
+        # Инициализируем счетчики
+        total_cameras = 0
+        online_cameras = 0
+        offline_cameras = 0
+        rasta_food_cameras = 0
+        people_counting_cameras = 0
+        animal_cameras = 0
+        vehicle_counting_cameras = 0
+        accessible_bazars = 0
+        
+        # Словарь для группировки по областям
+        regions_stats = {}
+        
+        # Собираем статистику по каждому базару
+        for service in services:
+            try:
+                # Проверяем доступность API камер
+                camera_api_url = f"http://{service.bazar_ip}:{service.backend_port}/api/cameras/statistics"
+                
+                response = requests.get(camera_api_url, timeout=3)
+                
+                if response.ok:
+                    stats = response.json()
+                    total_cameras += stats.get('totalCameras', 0)
+                    online_cameras += stats.get('onlineCameras', 0)
+                    offline_cameras += stats.get('offlineCameras', 0)
+                    rasta_food_cameras += stats.get('rastaFoodCameras', 0)
+                    people_counting_cameras += stats.get('peopleCountingCameras', 0)
+                    animal_cameras += stats.get('animalCameras', 0)
+                    vehicle_counting_cameras += stats.get('vehicleCountingCameras', 0)
+                    accessible_bazars += 1
+                    
+                    # Группируем по областям
+                    region = service.city or 'Unknown'
+                    if region not in regions_stats:
+                        regions_stats[region] = {
+                            'totalBazars': 0,
+                            'onlineBazars': 0,
+                            'offlineBazars': 0,
+                            'totalCameras': 0,
+                            'onlineCameras': 0,
+                            'offlineCameras': 0
+                        }
+                    
+                    regions_stats[region]['totalBazars'] += 1
+                    regions_stats[region]['onlineBazars'] += 1
+                    regions_stats[region]['totalCameras'] += stats.get('totalCameras', 0)
+                    regions_stats[region]['onlineCameras'] += stats.get('onlineCameras', 0)
+                    regions_stats[region]['offlineCameras'] += stats.get('offlineCameras', 0)
+                else:
+                    # Базар оффлайн
+                    region = service.city or 'Unknown'
+                    if region not in regions_stats:
+                        regions_stats[region] = {
+                            'totalBazars': 0,
+                            'onlineBazars': 0,
+                            'offlineBazars': 0,
+                            'totalCameras': 0,
+                            'onlineCameras': 0,
+                            'offlineCameras': 0
+                        }
+                    
+                    regions_stats[region]['totalBazars'] += 1
+                    regions_stats[region]['offlineBazars'] += 1
+                    
+            except Exception as e:
+                print(f"Ошибка получения статистики камер для {service.bazar_name}: {e}")
+                # Базар оффлайн
+                region = service.city or 'Unknown'
+                if region not in regions_stats:
+                    regions_stats[region] = {
+                        'totalBazars': 0,
+                        'onlineBazars': 0,
+                        'offlineBazars': 0,
+                        'totalCameras': 0,
+                        'onlineCameras': 0,
+                        'offlineCameras': 0
+                    }
+                
+                regions_stats[region]['totalBazars'] += 1
+                regions_stats[region]['offlineBazars'] += 1
+                continue
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'totalCameras': total_cameras,
+                'onlineCameras': online_cameras,
+                'offlineCameras': offline_cameras,
+                'rastaFoodCameras': rasta_food_cameras,
+                'peopleCountingCameras': people_counting_cameras,
+                'animalCameras': animal_cameras,
+                'vehicleCountingCameras': vehicle_counting_cameras,
+                'accessibleBazars': accessible_bazars,
+                'totalBazars': len(services),
+                'uptime_percentage': (online_cameras / total_cameras * 100) if total_cameras > 0 else 0,
+                'regionsStats': regions_stats
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @services_ns.route('/services')
 class ServicesResource(Resource):
     @services_ns.doc('get_services')
@@ -518,6 +637,7 @@ class ServicesResource(Resource):
                 bazar_port=data['port'],
                 backend_port=data['backend_port'],
                 pg_port=data['pg_port'],
+                stream_port=data.get('stream_port'),
                 city=data.get('city', 'Unknown'),
                 contact_click=data.get('contact_click'),
                 contact_click_name=data.get('contact_click_name'),
@@ -572,6 +692,7 @@ class ServiceResource(Resource):
                 'city': service.city,
                 'backend_port': service.backend_port,
                 'pg_port': service.pg_port,
+                'stream_port': service.stream_port,
                 'contact_click': service.contact_click,
                 'contact_click_name': service.contact_click_name,
                 'contact_scc': service.contact_scc,
@@ -600,6 +721,9 @@ class ServiceResource(Resource):
             if 'pg_port' in data and data['pg_port'] != service.pg_port:
                 changes['pg_port'] = {'old': service.pg_port, 'new': data['pg_port']}
                 service.pg_port = data['pg_port']
+            if 'stream_port' in data and data['stream_port'] != service.stream_port:
+                changes['stream_port'] = {'old': service.stream_port, 'new': data['stream_port']}
+                service.stream_port = data['stream_port']
             
             # Обновляем контакты
             if 'contact_click' in data:

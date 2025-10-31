@@ -14,12 +14,15 @@ COPY . .
 # Создаем директорию для базы данных
 RUN mkdir -p /app/instance
 
+# Делаем entrypoint скрипт исполняемым
+RUN chmod +x docker-entrypoint.sh
+
 # Устанавливаем переменную окружения для БД
 ENV SQLALCHEMY_DATABASE_URI=sqlite:////app/instance/bazar_monitoring.db
 
 # Открываем порт
 EXPOSE 5000
 
-# Запускаем приложение
-CMD ["python", "app.py"]
+# Используем entrypoint для автоматических миграций
+ENTRYPOINT ["./docker-entrypoint.sh"]
 

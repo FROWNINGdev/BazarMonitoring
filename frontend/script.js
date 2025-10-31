@@ -1,13 +1,404 @@
 // ===============================================
-// Market Monitoring System - Main Script
+// Camera and ROI Data Functions
+// ===============================================
+
+/**
+ * Получает список всех камер для базара
+ * @param {string} ip - IP адрес базара
+ * @param {number} backendPort - Порт backend сервиса
+ * @returns {Promise<Array>} - Список камер
+ */
+async function fetchCamerasForBazaar(ip, backendPort) {
+    try {
+        const camerasApiUrl = `http://${ip}:${backendPort}/api/cameras`;
+        const response = await fetch(camerasApiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors',
+            timeout: 5000
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.data || data || [];
+        } else {
+            console.warn(`Failed to fetch cameras for ${ip}:${backendPort}, status: ${response.status}`);
+            return [];
+        }
+    } catch (error) {
+        console.warn(`Error fetching cameras for ${ip}:${backendPort}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Получает ROI для конкретной камеры
+ * @param {string} ip - IP адрес базара
+ * @param {number} backendPort - Порт backend сервиса
+ * @param {string|number} cameraId - ID камеры
+ * @returns {Promise<Array>} - Список ROI
+ */
+async function fetchROIsForCamera(ip, backendPort, cameraId) {
+    try {
+        const roisApiUrl = `http://${ip}:${backendPort}/api/cameras/${cameraId}/rois`;
+        const response = await fetch(roisApiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors',
+            timeout: 5000
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.data || data || [];
+        } else {
+            console.warn(`Failed to fetch ROIs for camera ${cameraId} at ${ip}:${backendPort}, status: ${response.status}`);
+            return [];
+        }
+    } catch (error) {
+        console.warn(`Error fetching ROIs for camera ${cameraId} at ${ip}:${backendPort}:`, error);
+        return [];
+    }
+}
+
+/**
+ * Получает детальную статистику по камерам и ROI для базара
+ * @param {Object} bazar - Объект базара
+ * @returns {Promise<Object>} - Статистика по камерам и ROI
+ */
+async function getDetailedCameraStatsForBazaar(bazar) {
+    const stats = {
+        totalCameras: 0,
+        onlineCameras: 0,
+        offlineCameras: 0,
+        camerasWithROI: 0,
+        totalROIs: 0,
+        roiTypes: {
+            rasta: 0,
+            food: 0,
+            animal: 0
+        }
+    };
+
+    // Проверяем доступность базара
+    if (bazar.status !== 'online' || !bazar.endpoint) {
+        return stats;
+    }
+
+    try {
+        let ip, backendPort;
+        
+        // Определяем IP и порт из разных возможных структур данных
+        if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backendPort) {
+            ip = bazar.endpoint.ip;
+            backendPort = bazar.endpoint.backendPort;
+        } else if (bazar.endpoint && bazar.endpoint.ip && bazar.backend) {
+            ip = bazar.endpoint.ip;
+            backendPort = bazar.backend;
+        } else if (bazar.ipAddress && bazar.backendPort) {
+            ip = bazar.ipAddress;
+            backendPort = bazar.backendPort;
+        } else if (bazar.endpoint && bazar.endpoint.ip && bazar.endpoint.backend) {
+            ip = bazar.endpoint.ip;
+            backendPort = bazar.endpoint.backend;
+        }
+
+        if (!ip || !backendPort) {
+            console.warn(`No valid IP/port found for bazaar ${bazar.name}`);
+            return stats;
+        }
+
+        // Получаем список камер
+        const cameras = await fetchCamerasForBazaar(ip, backendPort);
+        stats.totalCameras = cameras.length;
+
+        if (cameras.length === 0) {
+            return stats;
+        }
+
+        // Обрабатываем каждую камеру параллельно
+        const cameraPromises = cameras.map(async (camera) => {
+            const cameraStats = {
+                isOnline: false,
+                hasROI: false,
+                roiCount: 0,
+                roiTypes: { rasta: 0, food: 0, animal: 0 }
+            };
+
+            // Определяем статус камеры
+            cameraStats.isOnline = camera.hasError === false || camera.status === 'online';
+
+            // Получаем ROI для камеры
+            try {
+                const rois = await fetchROIsForCamera(ip, backendPort, camera.id);
+                cameraStats.roiCount = rois.length;
+                cameraStats.hasROI = rois.length > 0;
+
+                // Подсчитываем типы ROI
+                rois.forEach(roi => {
+                    if (roi.type === 1 || roi.roiType === 1 || roi.type === 'RASTA') {
+                        cameraStats.roiTypes.rasta++;
+                    } else if (roi.type === 2 || roi.roiType === 2 || roi.type === 'FOOD') {
+                        cameraStats.roiTypes.food++;
+                    } else if (roi.type === 3 || roi.roiType === 3 || roi.type === 'ANIMAL') {
+                        cameraStats.roiTypes.animal++;
+                    }
+                });
+            } catch (error) {
+                console.warn(`Error processing camera ${camera.id}:`, error);
+            }
+
+            return cameraStats;
+        });
+
+        const cameraStatsResults = await Promise.allSettled(cameraPromises);
+
+        // Агрегируем результаты
+        cameraStatsResults.forEach(result => {
+            if (result.status === 'fulfilled') {
+                const cameraStats = result.value;
+                
+                if (cameraStats.isOnline) {
+                    stats.onlineCameras++;
+                } else {
+                    stats.offlineCameras++;
+                }
+
+                if (cameraStats.hasROI) {
+                    stats.camerasWithROI++;
+                }
+
+                stats.totalROIs += cameraStats.roiCount;
+                stats.roiTypes.rasta += cameraStats.roiTypes.rasta;
+                stats.roiTypes.food += cameraStats.roiTypes.food;
+                stats.roiTypes.animal += cameraStats.roiTypes.animal;
+            }
+        });
+
+    } catch (error) {
+        console.error(`Error getting detailed camera stats for bazaar ${bazar.name}:`, error);
+    }
+
+    return stats;
+}
+
+// ===============================================
+// Excel Export Functions
+// ===============================================
+
+async function exportToExcel() {
+    try {
+        // Получаем данные статистики
+        const statsData = getCurrentStatsData();
+        
+        if (!statsData) {
+            showNotification('Нет данных для экспорта', 'warning');
+            return;
+        }
+        
+        // Создаем рабочую книгу Excel
+        const wb = XLSX.utils.book_new();
+        
+        // Определяем язык для экспорта
+        const isUzbek = currentLang === 'uz';
+        
+        // Лист 1: Общая статистика
+        const overviewData = [
+            [isUzbek ? 'Ko\'rsatkich' : 'Показатель', isUzbek ? 'Qiymat' : 'Значение'],
+            [isUzbek ? 'Jami bozorlar' : 'Всего базаров', statsData.totalBazars || 0],
+            [isUzbek ? 'Onlayn' : 'Онлайн', statsData.onlineBazars || 0],
+            [isUzbek ? 'Oflayn' : 'Оффлайн', statsData.offlineBazars || 0],
+            [isUzbek ? 'Jami kameralar' : 'Всего камер', statsData.totalCameras || 0],
+            [isUzbek ? 'Ishlaydi kameralar' : 'Работает камер', statsData.onlineCameras || 0],
+            [isUzbek ? 'Ishlamaydi kameralar' : 'Не работает камер', statsData.offlineCameras || 0],
+            [isUzbek ? 'Mavjudlik foizi' : 'Процент доступности', `${statsData.uptimePercentage || 0}%`]
+        ];
+        
+        const ws1 = XLSX.utils.aoa_to_sheet(overviewData);
+        XLSX.utils.book_append_sheet(wb, ws1, isUzbek ? 'Umumiy statistika' : 'Общая статистика');
+        
+        // Лист 2: Детальная статистика по базарам
+        const detailedData = [
+            [ 
+                isUzbek ? 'Nom' : 'Название', 
+                isUzbek ? 'Shahar' : 'Город', 
+                isUzbek ? 'Status' : 'Статус',  
+                isUzbek ? 'Click kontakt' : 'Контакт Click', 
+                isUzbek ? 'SCC kontakt' : 'Контакт SCC', 
+                isUzbek ? 'Kenglik' : 'Широта', 
+                isUzbek ? 'Uzunlik' : 'Долгота',
+                isUzbek ? 'Jami kameralar' : 'Всего камер',
+                isUzbek ? 'Onlayn kameralar' : 'Онлайн камер',
+                isUzbek ? 'Oflayn kameralar' : 'Офлайн камер',
+                isUzbek ? 'Kameralar ROI bilan' : 'Камеры с ROI',
+                isUzbek ? 'Jami ROI' : 'Всего ROI',
+                isUzbek ? 'RASTA ROI' : 'RASTA ROI',
+                isUzbek ? 'FOOD ROI' : 'FOOD ROI',
+                isUzbek ? 'ANIMAL ROI' : 'ANIMAL ROI'
+            ]
+        ];
+        
+        // Добавляем данные по каждому базару
+        if (statsData.bazars && Array.isArray(statsData.bazars)) {
+            // Получаем детальную статистику для каждого базара
+            const detailedStatsPromises = statsData.bazars.map(async (bazar) => {
+                const detailedCameraStats = await getDetailedCameraStatsForBazaar(bazar);
+                return {
+                    bazar,
+                    detailedCameraStats
+                };
+            });
+            
+            const detailedStatsResults = await Promise.allSettled(detailedStatsPromises);
+            
+            detailedStatsResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    const { bazar, detailedCameraStats } = result.value;
+                    detailedData.push([
+                        bazar.name || '',
+                        bazar.city || '',
+                        bazar.status === 'online' ? (isUzbek ? 'Onlayn' : 'Онлайн') : (isUzbek ? 'Oflayn' : 'Оффлайн'),
+                        bazar.contact_click || '',
+                        bazar.contact_scc || '',
+                        bazar.latitude || '',
+                        bazar.longitude || '',
+                        detailedCameraStats.totalCameras || 0,
+                        detailedCameraStats.onlineCameras || 0,
+                        detailedCameraStats.offlineCameras || 0,
+                        detailedCameraStats.camerasWithROI || 0,
+                        detailedCameraStats.totalROIs || 0,
+                        detailedCameraStats.roiTypes?.rasta || 0,
+                        detailedCameraStats.roiTypes?.food || 0,
+                        detailedCameraStats.roiTypes?.animal || 0
+                    ]);
+                } else {
+                    // Если не удалось получить детальную статистику, добавляем базовые данные
+                    const bazar = result.reason?.bazar || {};
+                    detailedData.push([
+                        bazar.name || '',
+                        bazar.city || '',
+                        bazar.status === 'online' ? (isUzbek ? 'Onlayn' : 'Онлайн') : (isUzbek ? 'Oflayn' : 'Оффлайн'),
+                        bazar.contact_click || '',
+                        bazar.contact_scc || '',
+                        bazar.latitude || '',
+                        bazar.longitude || '',
+                        0, 0, 0, 0, 0, 0, 0, 0 // Нули для статистики камер и ROI
+                    ]);
+                }
+            });
+        }
+        
+        const ws2 = XLSX.utils.aoa_to_sheet(detailedData);
+        XLSX.utils.book_append_sheet(wb, ws2, isUzbek ? 'Bozorlar statistika' : 'Статистика базаров');
+        
+        // Лист 3: Статистика по областям
+        const regionsData = [
+            [
+                isUzbek ? 'Viloyat' : 'Область', 
+                isUzbek ? 'Jami bozorlar' : 'Всего базаров', 
+                isUzbek ? 'Onlayn' : 'Онлайн', 
+                isUzbek ? 'Oflayn' : 'Оффлайн', 
+                isUzbek ? 'Jami kameralar' : 'Всего камер', 
+                isUzbek ? 'Ishlaydi kameralar' : 'Работает камер'
+            ]
+        ];
+        
+        if (statsData.regionsStats && Object.keys(statsData.regionsStats).length > 0) {
+            Object.entries(statsData.regionsStats).forEach(([region, stats]) => {
+                regionsData.push([
+                    region,
+                    stats.totalBazars || 0,
+                    stats.onlineBazars || 0,
+                    stats.offlineBazars || 0,
+                    stats.totalCameras || 0,
+                    stats.onlineCameras || 0
+                ]);
+            });
+        } else {
+            // Если нет данных по областям, добавляем информационную строку
+            regionsData.push([isUzbek ? 'Viloyatlar bo\'yicha ma\'lumot yo\'q' : 'Нет данных по областям', '', '', '', '', '']);
+        }
+        
+        const ws3 = XLSX.utils.aoa_to_sheet(regionsData);
+        XLSX.utils.book_append_sheet(wb, ws3, isUzbek ? 'Viloyatlar statistika' : 'Статистика областей');
+        
+        // Генерируем имя файла с текущей датой и языком
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+        const langSuffix = isUzbek ? '_uz' : '_ru';
+        const fileName = `bazar_statistics_${dateStr}_${timeStr}${langSuffix}.xlsx`;
+        
+        // Скачиваем файл
+        XLSX.writeFile(wb, fileName);
+        
+        const successMessage = isUzbek ? 
+            'Statistika muvaffaqiyatli Excel fayliga eksport qilindi!' : 
+            'Статистика успешно экспортирована в Excel!';
+        showNotification(successMessage, 'success');
+        
+    } catch (error) {
+        console.error('Ошибка экспорта в Excel:', error);
+        const isUzbek = currentLang === 'uz';
+        const errorMessage = isUzbek ? 
+            'Excel fayliga eksport qilishda xatolik: ' + error.message : 
+            'Ошибка при экспорте в Excel: ' + error.message;
+        showNotification(errorMessage, 'error');
+    }
+}
+
+function getCurrentStatsData() {
+    // Получаем данные из текущего состояния приложения
+    const statsData = {
+        totalBazars: parseInt(document.getElementById('totalBazarsStats')?.textContent) || 0,
+        onlineBazars: parseInt(document.getElementById('onlineBazarsStats')?.textContent) || 0,
+        offlineBazars: parseInt(document.getElementById('offlineBazarsStats')?.textContent) || 0,
+        totalCameras: parseInt(document.getElementById('totalCamerasStats')?.textContent) || 0,
+        onlineCameras: parseInt(document.getElementById('onlineCamerasStats')?.textContent) || 0,
+        offlineCameras: parseInt(document.getElementById('offlineCamerasStats')?.textContent) || 0,
+        uptimePercentage: 0,
+        bazars: bazarsData || [],
+        regionsStats: currentRegionsStats || {}
+    };
+    
+    // Вычисляем процент доступности
+    if (statsData.totalBazars > 0) {
+        statsData.uptimePercentage = Math.round((statsData.onlineBazars / statsData.totalBazars) * 100);
+    }
+    
+    console.log('Export data:', statsData);
+    return statsData;
+}
+
 // ===============================================
 
 // Real-time clock
 function updateClock() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+    const timeStr = now.toLocaleTimeString('ru-RU', { 
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const dateStr = now.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
     const clockEl = document.getElementById('currentTime');
-    if (clockEl) clockEl.textContent = timeStr;
+    if (clockEl) {
+        clockEl.innerHTML = `
+            <div class="time-display">${timeStr}</div>
+            <div class="date-display">${dateStr}</div>
+        `;
+    }
 }
 
 setInterval(updateClock, 1000);
@@ -23,6 +414,7 @@ const API_BASE_URL = `http://${window.location.hostname}:5000/api`;
 let bazarsData = [];
 let filteredData = [];
 let notificationCache = new Set(); // Кеш для уведомлений
+let currentRegionsStats = {}; // Глобальная переменная для статистики по областям
 
 // ===============================================
 // Локализация / Internationalization
@@ -33,7 +425,19 @@ const translations = {
             analytics: 'Аналитика',
             containers: 'Контейнеры',
             addService: 'Добавить базар',
-            logs: 'Логи'
+            logs: 'Логи',
+            generalStats: 'Общая статистика',
+            map: 'Карта',
+            theme: 'Тема',
+            menu: 'Меню'
+        },
+        sidebar: {
+            title: 'Меню',
+            statistics: 'Статистика',
+            settings: 'Настройки',
+            external: 'Внешние сервисы',
+            management: 'Управление',
+            calendar: 'Календарь'
         },
         dashboard: {
             systemOverview: 'Обзор системы',
@@ -64,16 +468,36 @@ const translations = {
             showMap: 'Показать карту'
         },
         cameras: {
-            title: 'Камеры',
-            total: 'Всего:',
-            online: 'Онлайн:',
-            offline: 'Оффлайн:',
-            rastaFood: 'RastaFood:',
-            peopleCounting: 'Подсчет людей:',
-            animals: 'Животные:',
-            vehicleCounting: 'Подсчет транспорта:',
+            title: 'Статистика камер',
+            total: 'Всего камер',
+            online: 'Онлайн',
+            offline: 'Оффлайн',
+            working: 'Работает',
+            notWorking: 'Не работает',
+            types: 'Типы камер',
+            rastaFood: 'RastaFood',
+            peopleCounting: 'Подсчет людей',
+            animals: 'Животные',
+            vehicleCounting: 'Подсчет транспорта',
             dataUnavailable: 'Данные недоступны',
-            accessBozor: 'Access Bozor'
+            accessBozor: 'Access Bozor',
+            unavailable: 'Статистика камер недоступна'
+        },
+        statistics: {
+            title: 'Общая статистика базаров',
+            overview: 'Общая статистика',
+            cameras: 'Статистика камер',
+            detailed: 'Детальная статистика по базарам',
+            totalBazars: 'Всего базаров',
+            onlineBazars: 'Онлайн',
+            offlineBazars: 'Оффлайн',
+            totalCameras: 'Всего камер',
+            workingCameras: 'Работает',
+            notWorkingCameras: 'Не работает',
+            byRegions: 'Статистика по областям',
+            region: 'Область',
+            bazarsInRegion: 'Базаров в области',
+            camerasInRegion: 'Камер в области'
         },
         modal: {
             addService: {
@@ -85,6 +509,7 @@ const translations = {
                 frontendPort: 'Порт фронтенда',
                 backendPort: 'Порт backend API',
                 pgPort: 'Порт PostgreSQL',
+                streamPort: 'Порт Stream',
                 contactInfo: 'Контактная информация',
                 contactClickName: 'Имя контакта Click',
                 contactClickNamePlaceholder: 'Например: Иван Иванов',
@@ -145,7 +570,19 @@ const translations = {
             analytics: 'Analitika',
             containers: 'Konteynerlar',
             addService: 'Bozor qo\'shish',
-            logs: 'Loglar'
+            logs: 'Loglar',
+            generalStats: 'Umumiy statistika',
+            map: 'Xarita',
+            theme: 'Mavzu',
+            menu: 'Menyu'
+        },
+        sidebar: {
+            title: 'Menyu',
+            statistics: 'Statistika',
+            settings: 'Sozlamalar',
+            external: 'Tashqi xizmatlar',
+            management: 'Boshqarish',
+            calendar: 'Taqvim'
         },
         dashboard: {
             systemOverview: 'Tizim ko\'rinishi',
@@ -176,16 +613,36 @@ const translations = {
             showMap: 'Xaritani ko\'rsatish'
         },
         cameras: {
-            title: 'Kameralar',
-            total: 'Jami:',
-            online: 'Onlayn:',
-            offline: 'Oflayn:',
-            rastaFood: 'RastaFood:',
-            peopleCounting: 'Odamlar soni:',
-            animals: 'Hayvonlar:',
-            vehicleCounting: 'Transport soni:',
+            title: 'Kamera statistikasi',
+            total: 'Jami kameralar',
+            online: 'Onlayn',
+            offline: 'Oflayn',
+            working: 'Ishlaydi',
+            notWorking: 'Ishlamaydi',
+            types: 'Kamera turlari',
+            rastaFood: 'RastaFood',
+            peopleCounting: 'Odamlar soni',
+            animals: 'Hayvonlar',
+            vehicleCounting: 'Transport soni',
             dataUnavailable: 'Ma\'lumot mavjud emas',
-            accessBozor: 'Bozorga kirish'
+            accessBozor: 'Bozorga kirish',
+            unavailable: 'Kamera statistikasi mavjud emas'
+        },
+        statistics: {
+            title: 'Umumiy bozor statistikasi',
+            overview: 'Umumiy statistika',
+            cameras: 'Kamera statistikasi',
+            detailed: 'Bozorlar bo\'yicha batafsil statistika',
+            totalBazars: 'Jami bozorlar',
+            onlineBazars: 'Onlayn',
+            offlineBazars: 'Oflayn',
+            totalCameras: 'Jami kameralar',
+            workingCameras: 'Ishlaydi',
+            notWorkingCameras: 'Ishlamaydi',
+            byRegions: 'Viloyatlar bo\'yicha statistika',
+            region: 'Viloyat',
+            bazarsInRegion: 'Viloyatdagi bozorlar',
+            camerasInRegion: 'Viloyatdagi kameralar'
         },
         modal: {
             addService: {
@@ -197,6 +654,7 @@ const translations = {
                 frontendPort: 'Frontend porti',
                 backendPort: 'Backend API porti',
                 pgPort: 'PostgreSQL porti',
+                streamPort: 'Stream porti',
                 contactInfo: 'Aloqa ma\'lumotlari',
                 contactClickName: 'Click kontakt ismi',
                 contactClickNamePlaceholder: 'Masalan: Alisher Aliyev',
@@ -257,7 +715,19 @@ const translations = {
             analytics: 'Analytics',
             containers: 'Containers',
             addService: 'Add Bazar',
-            logs: 'Logs'
+            logs: 'Logs',
+            generalStats: 'General Statistics',
+            map: 'Map',
+            theme: 'Theme',
+            menu: 'Menu'
+        },
+        sidebar: {
+            title: 'Menu',
+            statistics: 'Statistics',
+            settings: 'Settings',
+            external: 'External Services',
+            management: 'Management',
+            calendar: 'Calendar'
         },
         dashboard: {
             systemOverview: 'System Overview',
@@ -288,16 +758,36 @@ const translations = {
             showMap: 'Show Map'
         },
         cameras: {
-            title: 'Cameras',
-            total: 'Total:',
-            online: 'Online:',
-            offline: 'Offline:',
-            rastaFood: 'RastaFood:',
-            peopleCounting: 'People Counting:',
-            animals: 'Animals:',
-            vehicleCounting: 'Vehicle Counting:',
+            title: 'Camera Statistics',
+            total: 'Total Cameras',
+            online: 'Online',
+            offline: 'Offline',
+            working: 'Working',
+            notWorking: 'Not Working',
+            types: 'Camera Types',
+            rastaFood: 'RastaFood',
+            peopleCounting: 'People Counting',
+            animals: 'Animals',
+            vehicleCounting: 'Vehicle Counting',
             dataUnavailable: 'Data Unavailable',
-            accessBozor: 'Access Bozor'
+            accessBozor: 'Access Bozor',
+            unavailable: 'Camera statistics unavailable'
+        },
+        statistics: {
+            title: 'General Bazar Statistics',
+            overview: 'General Statistics',
+            cameras: 'Camera Statistics',
+            detailed: 'Detailed Statistics by Bazars',
+            totalBazars: 'Total Bazars',
+            onlineBazars: 'Online',
+            offlineBazars: 'Offline',
+            totalCameras: 'Total Cameras',
+            workingCameras: 'Working',
+            notWorkingCameras: 'Not Working',
+            byRegions: 'Statistics by Regions',
+            region: 'Region',
+            bazarsInRegion: 'Bazars in Region',
+            camerasInRegion: 'Cameras in Region'
         },
         modal: {
             addService: {
@@ -471,6 +961,15 @@ function initLanguage() {
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Set initial theme button icon
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) {
+        const icon = themeToggleBtn.querySelector('i');
+        if (icon) {
+            icon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    }
 }
 
 function toggleTheme() {
@@ -478,11 +977,205 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    
+    // Update theme button icon
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (themeToggleBtn) {
+        const icon = themeToggleBtn.querySelector('i');
+        if (icon) {
+            icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    }
+    
+    // Обновляем частицы при смене темы
+    updateParticlesTheme();
 }
+
+function updateParticlesTheme() {
+    // Переинициализируем частицы при смене темы (без падений)
+        initParticles();
+    }
+
+// Добавлено: безопасная инициализация particles.js
+function initParticles() {
+    const containerId = 'particles-js';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Если библиотека не загружена — выходим тихо
+    if (typeof window.particlesJS === 'undefined') {
+        console.warn('particlesJS is not loaded, skipping particles init');
+        return;
+    }
+
+    // Очищаем предыдущий canvas при переинициализации
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const color = isLight ? '#2563eb' : '#00bcd4';
+
+    window.particlesJS(containerId, {
+        particles: {
+            number: { value: 50, density: { enable: true, value_area: 800 } },
+            color: { value: color },
+            shape: { type: 'circle' },
+            opacity: { value: 0.3 },
+            size: { value: 3, random: true },
+            line_linked: { enable: true, distance: 150, color: color, opacity: 0.2, width: 1 },
+            move: { enable: true, speed: 2, out_mode: 'out' }
+        },
+        interactivity: {
+            detect_on: 'canvas',
+            events: {
+                onhover: { enable: true, mode: 'grab' },
+                onclick: { enable: true, mode: 'push' },
+                resize: true
+            },
+            modes: {
+                grab: { distance: 140, line_linked: { opacity: 0.3 } },
+                push: { particles_nb: 4 }
+            }
+        },
+        retina_detect: true
+    });
+}
+
+function initSidebar() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const openBtn = document.getElementById('sidebarOpenBtn');
+    
+    // Инициализируем правильное состояние
+    if (sidebar && openBtn) {
+        // Боковое меню изначально открыто, поэтому кнопка должна быть скрыта
+        openBtn.classList.add('hidden');
+    }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebarMenu');
+    const openBtn = document.getElementById('sidebarOpenBtn');
+    
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+        document.body.classList.toggle('sidebar-collapsed');
+        
+        // Управляем видимостью кнопки открытия
+        if (openBtn) {
+            if (sidebar.classList.contains('collapsed')) {
+                // Меню закрыто - показываем кнопку открытия
+                openBtn.classList.remove('hidden');
+            } else {
+                // Меню открыто - скрываем кнопку открытия
+                openBtn.classList.add('hidden');
+            }
+        }
+    }
+}
+
+// Calendar functionality
+let currentDate = new Date();
+let selectedDate = new Date();
+let isCalendarExpanded = false;
+
+function initCalendar() {
+    updateCalendarDisplay();
+    generateCalendarDays();
+}
+
+function updateCalendarDisplay() {
+    const currentDay = document.getElementById('currentDay');
+    const currentMonth = document.getElementById('currentMonth');
+    const currentYear = document.getElementById('currentYear');
+    
+    if (currentDay) currentDay.textContent = currentDate.getDate();
+    if (currentMonth) currentMonth.textContent = getMonthName(currentDate.getMonth());
+    if (currentYear) currentYear.textContent = currentDate.getFullYear();
+}
+
+function getMonthName(monthIndex) {
+    const months = [
+        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    ];
+    return months[monthIndex];
+}
+
+function generateCalendarDays() {
+    const daysContainer = document.getElementById('daysContainer');
+    if (!daysContainer) return;
+    
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+    
+    // Clear container
+    daysContainer.innerHTML = '';
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'day-box';
+        daysContainer.appendChild(emptyDay);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayBox = document.createElement('div');
+        dayBox.className = 'day-box';
+        dayBox.innerHTML = `<span class="day-number">${day}</span>`;
+        
+        const dayDate = new Date(year, month, day);
+        const dayOfWeek = dayDate.getDay();
+        
+        // Check if it's weekend (Saturday=6, Sunday=0)
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            dayBox.classList.add('weekend');
+        }
+        
+        // Check if it's today
+        const today = new Date();
+        if (dayDate.toDateString() === today.toDateString()) {
+            dayBox.classList.add('today');
+        }
+        
+        // Check if it's selected
+        if (dayDate.toDateString() === selectedDate.toDateString()) {
+            dayBox.classList.add('selected');
+        }
+        
+        // Add click event
+        dayBox.addEventListener('click', () => selectDate(dayDate));
+        
+        daysContainer.appendChild(dayBox);
+    }
+}
+
+function selectDate(date) {
+    selectedDate = new Date(date);
+    generateCalendarDays(); // Regenerate to update selection
+}
+
+function toggleCalendar() {
+    // Toggle calendar visibility or navigate to today
+    currentDate = new Date();
+    selectedDate = new Date();
+    updateCalendarDisplay();
+    generateCalendarDays();
+}
+
 
 // ===============================================
 // Data Fetching
 // ===============================================
+
+
 async function loadAllBazars() {
     elements.refreshBtn.disabled = true;
     elements.refreshBtn.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i><span>${t('dashboard.refresh')}</span>`;
@@ -560,12 +1253,95 @@ async function loadAllBazars() {
 // ===============================================
 // UI Rendering
 // ===============================================
-function createServiceCard(bazar, index) {
+async function createServiceCard(bazar, index) {
     const card = document.createElement('div');
     card.className = `market-card ${bazar.status}`;
 
     const statusClass = bazar.status === 'online' ? 'online' : 'offline';
     const statusText = bazar.status === 'online' ? 'Active' : 'Offline';
+
+    // Загружаем статистику камер для этого базара
+    let cameraStats = null;
+    if (bazar.status === 'online' && bazar.endpoint) {
+        try {
+            const cameraApiUrl = `http://${bazar.endpoint.ip}:${bazar.endpoint.backendPort}/api/cameras/statistics`;
+            const response = await fetch(cameraApiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            if (response.ok) {
+                cameraStats = await response.json();
+            }
+        } catch (error) {
+            console.warn(`Failed to fetch camera stats for ${bazar.name}:`, error);
+        }
+    }
+
+    // Формируем блок статистики камер
+    let camerasHtml = '';
+    if (cameraStats) {
+        camerasHtml = `
+            <!-- Кнопка для раскрытия камер -->
+            <div class="endpoints-toggle" onclick="toggleEndpoints(this)" style="cursor: pointer; padding: 0.75rem; display: flex; align-items: center; justify-content: space-between; background: var(--surface-color); border-radius: 8px; margin-top: 1rem; margin-bottom: 0.5rem; transition: all 0.3s ease;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-video" style="color: var(--primary);"></i>
+                    <span style="font-weight: 500;">Камеры</span>
+                </div>
+                <i class="fas fa-chevron-down" style="color: var(--text-muted); transition: transform 0.3s ease;"></i>
+            </div>
+            
+            <!-- Скрываемая секция камер -->
+            <div class="endpoint-group" style="display: none; margin-bottom: 1rem;">
+                <div class="endpoint-row">
+                    <div class="endpoint-header">
+                        <div class="endpoint-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <span class="endpoint-label">Статистика камер</span>
+                    </div>
+                    <div class="endpoint-data">
+                        <div class="cameras-stats-inline">
+                                   <div class="camera-stat-inline">
+                                       <span class="stat-number">${cameraStats.totalCameras || 0}</span>
+                                       <span class="stat-label">${t('statistics.totalCameras')}</span>
+                                   </div>
+                                   <div class="camera-stat-inline online">
+                                       <span class="stat-number">${cameraStats.onlineCameras || 0}</span>
+                                       <span class="stat-label">${t('statistics.workingCameras')}</span>
+                                   </div>
+                                   <div class="camera-stat-inline offline">
+                                       <span class="stat-number">${cameraStats.offlineCameras || 0}</span>
+                                       <span class="stat-label">${t('statistics.notWorkingCameras')}</span>
+                                   </div>
+                        </div>
+                    </div>
+                </div>
+                ${cameraStats.rastaFoodCameras > 0 || cameraStats.peopleCountingCameras > 0 || cameraStats.animalCameras > 0 || cameraStats.vehicleCountingCameras > 0 ? `
+                <div class="endpoint-row">
+                    <div class="endpoint-header">
+                        <div class="endpoint-icon" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <span class="endpoint-label">Типы камер</span>
+                    </div>
+                    <div class="endpoint-data">
+                        <div class="camera-types-inline">
+                            ${cameraStats.rastaFoodCameras > 0 ? `<span class="camera-type-badge rasta-food"><i class="fas fa-utensils"></i> ${cameraStats.rastaFoodCameras}</span>` : ''}
+                            ${cameraStats.peopleCountingCameras > 0 ? `<span class="camera-type-badge people-counting"><i class="fas fa-users"></i> ${cameraStats.peopleCountingCameras}</span>` : ''}
+                            ${cameraStats.animalCameras > 0 ? `<span class="camera-type-badge animals"><i class="fas fa-paw"></i> ${cameraStats.animalCameras}</span>` : ''}
+                            ${cameraStats.vehicleCountingCameras > 0 ? `<span class="camera-type-badge vehicles"><i class="fas fa-car"></i> ${cameraStats.vehicleCountingCameras}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }
 
     // Формируем блок контактов если они есть (всегда видимый)
     let contactsHtml = '';
@@ -688,6 +1464,7 @@ function createServiceCard(bazar, index) {
                 </div>
             </div>
             
+            ${camerasHtml}
             ${contactsHtml}
         </div>
 
@@ -702,7 +1479,7 @@ function createServiceCard(bazar, index) {
     return card;
 }
 
-function renderBazars() {
+async function renderBazars() {
     elements.bazarsGrid.innerHTML = '';
 
     if (filteredData.length === 0) {
@@ -716,10 +1493,11 @@ function renderBazars() {
         return;
     }
 
-    filteredData.forEach((bazar, index) => {
-        const card = createServiceCard(bazar, index);
+    // Создаем карточки асинхронно
+    for (const [index, bazar] of filteredData.entries()) {
+        const card = await createServiceCard(bazar, index);
         elements.bazarsGrid.appendChild(card);
-    });
+    }
 }
 
 function updateStats() {
@@ -754,7 +1532,7 @@ function checkOfflineServices() {
             .sort()
             .join(',');
         
-        // Проверяем, показывали ли мы уже это уведомление
+        // Проверяем, показыдали ли мы уже это уведомление
         if (!notificationCache.has(offlineKey)) {
             notificationCache.add(offlineKey);
             showOfflineNotification(offlineServices);
@@ -930,6 +1708,235 @@ if (langToggle) {
     langToggle.addEventListener('click', toggleLanguage);
 }
 
+// General Statistics button
+const generalStatsBtn = document.getElementById('generalStatsBtn');
+if (generalStatsBtn) {
+    generalStatsBtn.addEventListener('click', showGeneralStatistics);
+}
+
+// Map button - handled in initMapControls()
+
+// Theme toggle button
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', toggleTheme);
+}
+
+// Sidebar toggle button
+
+// Edit Service Modal Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit Service Form Submit Handler
+    const editServiceForm = document.getElementById('editServiceForm');
+    if (editServiceForm) {
+        editServiceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const serviceId = document.getElementById('editServiceId').value;
+            if (!serviceId) {
+                showNotification('Ошибка: ID сервиса не найден', 'error');
+                return;
+            }
+            
+            // Собираем данные формы
+            const formData = {
+                name: document.getElementById('editServiceName').value.trim(),
+                city: document.getElementById('editServiceCity').value.trim(),
+                ip: document.getElementById('editServiceIp').value.trim(),
+                port: parseInt(document.getElementById('editServicePort').value),
+                backend_port: parseInt(document.getElementById('editServiceBackendPort').value),
+                pg_port: parseInt(document.getElementById('editServicePgPort').value),
+                stream_port: document.getElementById('editServiceStreamPort').value ? parseInt(document.getElementById('editServiceStreamPort').value) : null,
+                contact_click_name: document.getElementById('editServiceContactClickName').value.trim(),
+                contact_click: document.getElementById('editServiceContactClick').value.trim() ? '+998' + document.getElementById('editServiceContactClick').value.trim() : '',
+                contact_scc_name: document.getElementById('editServiceContactSccName').value.trim(),
+                contact_scc: document.getElementById('editServiceContactScc').value.trim() ? '+998' + document.getElementById('editServiceContactScc').value.trim() : '',
+                latitude: document.getElementById('editServiceLatitude').value.trim() ? parseFloat(document.getElementById('editServiceLatitude').value) : null,
+                longitude: document.getElementById('editServiceLongitude').value.trim() ? parseFloat(document.getElementById('editServiceLongitude').value) : null
+            };
+            
+            // Валидация обязательных полей
+            if (!formData.name) {
+                showNotification('Название сервиса обязательно', 'error');
+                return;
+            }
+            if (!formData.ip) {
+                showNotification('IP адрес обязателен', 'error');
+                return;
+            }
+            if (!formData.port || formData.port <= 0) {
+                showNotification('Порт фронтенда обязателен', 'error');
+                return;
+            }
+            if (!formData.backend_port || formData.backend_port <= 0) {
+                showNotification('Порт backend API обязателен', 'error');
+                return;
+            }
+            if (!formData.pg_port || formData.pg_port <= 0) {
+                showNotification('Порт PostgreSQL обязателен', 'error');
+                return;
+            }
+            
+            // Обновляем сервис
+            updateService(serviceId, formData);
+        });
+    }
+    
+    // Close Edit Service Modal Button
+    const closeEditServiceBtn = document.getElementById('closeEditServiceBtn');
+    if (closeEditServiceBtn) {
+        closeEditServiceBtn.addEventListener('click', closeEditServiceModal);
+    }
+    
+    // Cancel Edit Service Button
+    const cancelEditServiceBtn = document.getElementById('cancelEditService');
+    if (cancelEditServiceBtn) {
+        cancelEditServiceBtn.addEventListener('click', closeEditServiceModal);
+    }
+    
+    // Delete Edit Service Button
+    const deleteEditServiceBtn = document.getElementById('deleteEditService');
+    if (deleteEditServiceBtn) {
+        deleteEditServiceBtn.addEventListener('click', function() {
+            const serviceId = document.getElementById('editServiceId').value;
+            if (serviceId) {
+                deleteService(serviceId);
+            } else {
+                showNotification('Ошибка: ID сервиса не найден', 'error');
+            }
+        });
+    }
+    
+    // Close modal on overlay click
+    const editServiceModal = document.getElementById('editServiceModal');
+    if (editServiceModal) {
+        const overlay = editServiceModal.querySelector('.admin-modal-overlay');
+        if (overlay) {
+            overlay.addEventListener('click', closeEditServiceModal);
+        }
+    }
+    
+    // Toggle Additional Fields
+    const toggleEditAdditional = document.getElementById('toggleEditAdditional');
+    const editAdditionalContent = document.getElementById('editAdditionalContent');
+    
+    if (toggleEditAdditional && editAdditionalContent) {
+        toggleEditAdditional.addEventListener('click', function() {
+            const isActive = editAdditionalContent.classList.contains('active');
+            
+            if (isActive) {
+                editAdditionalContent.classList.remove('active');
+                toggleEditAdditional.classList.remove('active');
+                toggleEditAdditional.querySelector('i').style.transform = 'rotate(0deg)';
+            } else {
+                editAdditionalContent.classList.add('active');
+                toggleEditAdditional.classList.add('active');
+                toggleEditAdditional.querySelector('i').style.transform = 'rotate(180deg)';
+            }
+        });
+    }
+    
+    // Add Service Modal Event Listeners
+    // Add Service Form Submit Handler
+    const addServiceForm = document.getElementById('addServiceForm');
+    if (addServiceForm) {
+        addServiceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Собираем данные формы
+            const formData = {
+                name: document.getElementById('serviceName').value.trim(),
+                city: document.getElementById('serviceCity').value.trim(),
+                ip: document.getElementById('serviceIp').value.trim(),
+                port: parseInt(document.getElementById('servicePort').value),
+                backend_port: parseInt(document.getElementById('serviceBackendPort').value),
+                pg_port: parseInt(document.getElementById('servicePgPort').value),
+                stream_port: document.getElementById('serviceStreamPort').value ? parseInt(document.getElementById('serviceStreamPort').value) : null,
+                contact_click_name: document.getElementById('serviceContactClickName').value.trim(),
+                contact_click: document.getElementById('serviceContactClick').value.trim() ? '+998' + document.getElementById('serviceContactClick').value.trim() : '',
+                contact_scc_name: document.getElementById('serviceContactSccName').value.trim(),
+                contact_scc: document.getElementById('serviceContactScc').value.trim() ? '+998' + document.getElementById('serviceContactScc').value.trim() : '',
+                latitude: document.getElementById('serviceLatitude').value.trim() ? parseFloat(document.getElementById('serviceLatitude').value) : null,
+                longitude: document.getElementById('serviceLongitude').value.trim() ? parseFloat(document.getElementById('serviceLongitude').value) : null
+            };
+            
+            // Валидация обязательных полей
+            if (!formData.name) {
+                showNotification('Название сервиса обязательно', 'error');
+                return;
+            }
+            if (!formData.ip) {
+                showNotification('IP адрес обязателен', 'error');
+                return;
+            }
+            if (!formData.port || formData.port <= 0) {
+                showNotification('Порт фронтенда обязателен', 'error');
+                return;
+            }
+            if (!formData.backend_port || formData.backend_port <= 0) {
+                showNotification('Порт backend API обязателен', 'error');
+                return;
+            }
+            if (!formData.pg_port || formData.pg_port <= 0) {
+                showNotification('Порт PostgreSQL обязателен', 'error');
+                return;
+            }
+            
+            // Добавляем сервис
+            addService(formData);
+        });
+    }
+    
+    // Close Add Service Modal Button
+    const closeAddServiceBtn = document.getElementById('closeAddServiceBtn');
+    if (closeAddServiceBtn) {
+        closeAddServiceBtn.addEventListener('click', closeAddServiceModal);
+    }
+    
+    // Cancel Add Service Button
+    const cancelAddServiceBtn = document.getElementById('cancelAddService');
+    if (cancelAddServiceBtn) {
+        cancelAddServiceBtn.addEventListener('click', closeAddServiceModal);
+    }
+    
+    // Close modal on overlay click
+    const addServiceModal = document.getElementById('addServiceModal');
+    if (addServiceModal) {
+        const overlay = addServiceModal.querySelector('.admin-modal-overlay');
+        if (overlay) {
+            overlay.addEventListener('click', closeAddServiceModal);
+        }
+    }
+    
+    // Toggle Additional Fields for Add Service
+    const toggleAdditional = document.getElementById('toggleAdditional');
+    const additionalContent = document.getElementById('additionalContent');
+    
+    if (toggleAdditional && additionalContent) {
+        toggleAdditional.addEventListener('click', function() {
+            const isActive = additionalContent.classList.contains('active');
+            
+            if (isActive) {
+                additionalContent.classList.remove('active');
+                toggleAdditional.classList.remove('active');
+                toggleAdditional.querySelector('i').style.transform = 'rotate(0deg)';
+            } else {
+                additionalContent.classList.add('active');
+                toggleAdditional.classList.add('active');
+                toggleAdditional.querySelector('i').style.transform = 'rotate(180deg)';
+            }
+        });
+    }
+    
+    // Add Service Button (if exists)
+    const addServiceBtn = document.getElementById('addServiceBtn');
+    if (addServiceBtn) {
+        addServiceBtn.addEventListener('click', openAddServiceModal);
+    }
+});
+
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     // Ctrl+F to focus search
@@ -968,8 +1975,8 @@ const bazarLocations = {
     'TERMIZ SHAHAR DEHQON OZIQ-OVQAT BOZORI': { lat: 37.213056, lng: 67.274903, city: 'Surxondaryo' },
     'SARIOSIYO DEHQON OZIQ-OVQAT BOZORI': { lat: 38.412765, lng: 67.956869, city: 'Surxondaryo' },
     'MARKAZIY DEHQON BOZORI FARG\'ONA': { lat: 40.395890, lng: 71.788552, city: 'Farg\'ona' },
-    'QO`QON SHAHAR DEHQON BOZORI': { lat: 40.525339, lng: 70.954376, city: 'Farg\'ona' },
-    'Uchko`prik Dehqon Bozori': { lat: 40.544029265896405, lng: 71.06111042694653, city: 'Farg\'ona' }
+    'QO`QON SHAHAR DEHQON BOZORI': { lat: 40.525339, lng: 70.954376, city: 'Farg\'она' },
+    'Uchko`prik Dehqon Bozori': { lat: 40.544029265896405, lng: 71.06111042694653, city: 'Farg\'она' }
 };
 
 function initMap() {
@@ -988,18 +1995,19 @@ function initMap() {
         doubleClickZoom: false // Отключаем стандартный зум по двойному клику
     });
 
-    // Добавляем тайлы карты (темная тема)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(uzbekistanMap);
-
     // Устанавливаем границы Узбекистана
     const bounds = L.latLngBounds(
         [37.0, 56.0], // Southwest
         [45.5, 73.2]  // Northeast
     );
     uzbekistanMap.setMaxBounds(bounds);
+    
+    // Добавляем статичную карту (ландшафтная 2D карта черного цвета)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(uzbekistanMap);
     
     // Добавляем обработчик двойного клика для сброса зума с плавной анимацией
     uzbekistanMap.on('dblclick', function(e) {
@@ -1360,13 +2368,13 @@ async function showRegionStatistics(regionName, latlng) {
 }
 
 // Modal controls
-let mapModal, openMapBtn, closeMapBtn, mapModalOverlay, fullscreenMapBtn, toggleBoundariesBtn;
+let mapModal, closeMapBtn, mapModalOverlay, fullscreenMapBtn, toggleBoundariesBtn;
 
 function initMapControls() {
     console.log('=== Starting initMapControls ===');
     
     mapModal = document.getElementById('mapModal');
-    openMapBtn = document.getElementById('openMapBtn');
+    const mapBtn = document.getElementById('mapBtn');
     closeMapBtn = document.getElementById('closeMapBtn');
     mapModalOverlay = document.querySelector('.map-modal-overlay');
     fullscreenMapBtn = document.getElementById('fullscreenMapBtn');
@@ -1374,15 +2382,15 @@ function initMapControls() {
     
     console.log('Map controls search results:', {
         mapModal: mapModal,
-        openMapBtn: openMapBtn,
+        mapBtn: mapBtn,
         closeMapBtn: closeMapBtn,
         mapModalOverlay: mapModalOverlay,
         fullscreenMapBtn: fullscreenMapBtn
     });
     
-    if (openMapBtn) {
-        console.log('Adding click event to openMapBtn');
-        openMapBtn.addEventListener('click', function(e) {
+    if (mapBtn) {
+        console.log('Adding click event to mapBtn');
+        mapBtn.addEventListener('click', function(e) {
             console.log('=== Map button clicked! Event:', e);
             e.preventDefault();
             e.stopPropagation();
@@ -1390,7 +2398,7 @@ function initMapControls() {
         });
         console.log('Click event added successfully');
     } else {
-        console.error('ERROR: openMapBtn not found in DOM!');
+        console.error('ERROR: mapBtn not found in DOM!');
     }
     
     if (closeMapBtn) {
@@ -1424,6 +2432,12 @@ function initMapControls() {
 
 function openMapModal() {
     console.log('=== openMapModal() called ===');
+    
+    // Find mapModal element if not already found
+    if (!mapModal) {
+        mapModal = document.getElementById('mapModal');
+    }
+    
     console.log('mapModal element:', mapModal);
     console.log('mapModal classes before:', mapModal ? mapModal.className : 'null');
     
@@ -1452,6 +2466,9 @@ function openMapModal() {
 }
 
 function closeMapModal() {
+    if (!mapModal) {
+        mapModal = document.getElementById('mapModal');
+    }
     if (!mapModal) return;
     mapModal.classList.remove('active');
     mapModal.classList.remove('fullscreen');
@@ -1459,7 +2476,318 @@ function closeMapModal() {
     updateFullscreenIcon();
 }
 
+// General Statistics functions
+function showGeneralStatistics() {
+    const statsModal = document.getElementById('generalStatsModal');
+    if (statsModal) {
+        statsModal.style.display = 'flex';
+        setTimeout(() => {
+            statsModal.classList.add('active');
+        }, 10);
+        
+        // Load and update statistics
+        loadGeneralStatistics();
+    }
+}
+
+function closeGeneralStats() {
+    const statsModal = document.getElementById('generalStatsModal');
+    if (statsModal) {
+        statsModal.classList.remove('active');
+        setTimeout(() => {
+            statsModal.style.display = 'none';
+        }, 300);
+    }
+}
+
+async function loadGeneralStatistics() {
+    try {
+        // Load cameras statistics
+        const camerasResponse = await fetch(`${API_BASE_URL}/cameras/statistics`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (camerasResponse.ok) {
+            const camerasResult = await camerasResponse.json();
+            if (camerasResult.success) {
+                updateGeneralStatisticsDisplay(camerasResult.data);
+            }
+        }
+
+        // Load detailed statistics for each bazar
+        await loadDetailedBazarsStatistics();
+        
+    } catch (error) {
+        console.error('Error loading general statistics:', error);
+    }
+}
+
+function updateGeneralStatisticsDisplay(data) {
+    // Update overview statistics
+    document.getElementById('totalBazarsStats').textContent = data.totalBazars || 0;
+    document.getElementById('onlineBazarsStats').textContent = data.accessibleBazars || 0;
+    document.getElementById('offlineBazarsStats').textContent = (data.totalBazars || 0) - (data.accessibleBazars || 0);
+    
+    // Update cameras statistics
+    document.getElementById('totalCamerasStats').textContent = data.totalCameras || 0;
+    document.getElementById('onlineCamerasStats').textContent = data.onlineCameras || 0;
+    document.getElementById('offlineCamerasStats').textContent = data.offlineCameras || 0;
+    
+    // Update regions statistics
+    updateRegionsStatistics(data.regionsStats || {});
+}
+
+async function loadDetailedBazarsStatistics() {
+    const statsDetailedList = document.getElementById('statsDetailedList');
+    if (!statsDetailedList) {
+        console.error('statsDetailedList element not found');
+        return;
+    }
+    
+    console.log('Loading detailed statistics for bazars:', bazarsData.length);
+    
+    // Показываем индикатор загрузки
+    statsDetailedList.innerHTML = `
+        <div class="loading-state">
+            <div class="modern-loader">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-core"></div>
+            </div>
+            <div class="loading-info">
+                <p class="loading-title">Загрузка детальной статистики</p>
+                <p class="loading-subtitle">Получение данных о камерах и ROI...</p>
+            </div>
+        </div>
+    `;
+    
+    let detailedListHtml = '';
+    
+    // Обрабатываем базары параллельно для ускорения
+    const bazarPromises = bazarsData.map(async (bazar) => {
+        const statusClass = bazar.status === 'online' ? 'online' : 'offline';
+        const statusText = bazar.status === 'online' ? t('statistics.onlineBazars') : t('statistics.offlineBazars');
+        
+        // Получаем детальную статистику по камерам и ROI
+        const detailedCameraStats = await getDetailedCameraStatsForBazaar(bazar);
+        
+        // Получаем базовую статистику камер (для совместимости)
+        let basicCameraStats = null;
+        if (bazar.status === 'online' && bazar.endpoint) {
+            try {
+                const cameraApiUrl = `http://${bazar.endpoint.ip}:${bazar.endpoint.backendPort}/api/cameras/statistics`;
+                const response = await fetch(cameraApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    basicCameraStats = await response.json();
+                }
+            } catch (error) {
+                console.warn(`Failed to fetch basic camera stats for ${bazar.name}:`, error);
+            }
+        }
+        
+        return {
+            bazar,
+            statusClass,
+            statusText,
+            detailedCameraStats,
+            basicCameraStats
+        };
+    });
+    
+    const bazarResults = await Promise.allSettled(bazarPromises);
+    
+    // Генерируем HTML для каждого базара
+    bazarResults.forEach(result => {
+        if (result.status === 'fulfilled') {
+            const { bazar, statusClass, statusText, detailedCameraStats, basicCameraStats } = result.value;
+            
+            detailedListHtml += `
+                <div class="stats-detailed-item">
+                    <div class="stats-detailed-header">
+                        <div class="stats-detailed-name">${bazar.name || 'Unknown'}</div>
+                        <div class="stats-detailed-status ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="stats-detailed-info">
+                        <div class="stats-detailed-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${bazar.city || 'Unknown'}</span>
+                        </div>
+                        <div class="stats-detailed-endpoint">
+                            <i class="fas fa-server"></i>
+                            <span>${bazar.endpoint ? `${bazar.endpoint.ip}:${bazar.endpoint.port || bazar.endpoint.backendPort}` : 'N/A'}</span>
+                        </div>
+                    </div>
+                    ${detailedCameraStats.totalCameras > 0 ? `
+                    <div class="stats-detailed-cameras">
+                        <div class="stats-cameras-stats">
+                            <div class="stats-camera-stat">
+                                <span class="stat-number">${detailedCameraStats.totalCameras}</span>
+                                <span class="stat-label">${t('statistics.totalCameras')}</span>
+                            </div>
+                            <div class="stats-camera-stat online">
+                                <span class="stat-number">${detailedCameraStats.onlineCameras}</span>
+                                <span class="stat-label">${t('statistics.workingCameras')}</span>
+                            </div>
+                            <div class="stats-camera-stat offline">
+                                <span class="stat-number">${detailedCameraStats.offlineCameras}</span>
+                                <span class="stat-label">${t('statistics.notWorkingCameras')}</span>
+                            </div>
+                        </div>
+                        <div class="stats-roi-stats">
+                            <div class="stats-roi-header">
+                                <i class="fas fa-crosshairs"></i>
+                                <span>ROI статистика</span>
+                            </div>
+                            <div class="stats-roi-details">
+                                <div class="stats-roi-stat">
+                                    <span class="stat-number">${detailedCameraStats.camerasWithROI}</span>
+                                    <span class="stat-label">Камер с ROI</span>
+                                </div>
+                                <div class="stats-roi-stat">
+                                    <span class="stat-number">${detailedCameraStats.totalROIs}</span>
+                                    <span class="stat-label">Всего ROI</span>
+                                </div>
+                            </div>
+                            ${detailedCameraStats.totalROIs > 0 ? `
+                            <div class="stats-roi-types">
+                                ${detailedCameraStats.roiTypes.rasta > 0 ? `<span class="roi-type-badge rasta"><i class="fas fa-utensils"></i> RASTA: ${detailedCameraStats.roiTypes.rasta}</span>` : ''}
+                                ${detailedCameraStats.roiTypes.food > 0 ? `<span class="roi-type-badge food"><i class="fas fa-hamburger"></i> FOOD: ${detailedCameraStats.roiTypes.food}</span>` : ''}
+                                ${detailedCameraStats.roiTypes.animal > 0 ? `<span class="roi-type-badge animal"><i class="fas fa-paw"></i> ANIMAL: ${detailedCameraStats.roiTypes.animal}</span>` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${basicCameraStats && (basicCameraStats.rastaFoodCameras > 0 || basicCameraStats.peopleCountingCameras > 0 || basicCameraStats.animalCameras > 0 || basicCameraStats.vehicleCountingCameras > 0) ? `
+                        <div class="stats-camera-types">
+                            ${basicCameraStats.rastaFoodCameras > 0 ? `<span class="camera-type-badge rasta-food"><i class="fas fa-utensils"></i> ${basicCameraStats.rastaFoodCameras}</span>` : ''}
+                            ${basicCameraStats.peopleCountingCameras > 0 ? `<span class="camera-type-badge people-counting"><i class="fas fa-users"></i> ${basicCameraStats.peopleCountingCameras}</span>` : ''}
+                            ${basicCameraStats.animalCameras > 0 ? `<span class="camera-type-badge animals"><i class="fas fa-paw"></i> ${basicCameraStats.animalCameras}</span>` : ''}
+                            ${basicCameraStats.vehicleCountingCameras > 0 ? `<span class="camera-type-badge vehicles"><i class="fas fa-car"></i> ${basicCameraStats.vehicleCountingCameras}</span>` : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : `
+                    <div class="stats-detailed-cameras">
+                        <div class="stats-cameras-unavailable">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>${t('cameras.unavailable')}</span>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            `;
+        } else {
+            console.error('Error processing bazar:', result.reason);
+        }
+    });
+    
+    console.log('Generated detailed HTML:', detailedListHtml.length, 'characters');
+    statsDetailedList.innerHTML = detailedListHtml;
+    
+    if (detailedListHtml === '') {
+        console.warn('No detailed statistics generated - bazarsData might be empty');
+        statsDetailedList.innerHTML = `
+            <div class="stats-detailed-item">
+                <div class="stats-detailed-header">
+                    <div class="stats-detailed-name">Нет данных</div>
+                    <div class="stats-detailed-status offline">Оффлайн</div>
+                </div>
+                <div class="stats-detailed-info">
+                    <div class="stats-detailed-location">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Данные о базарах не загружены</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function updateRegionsStatistics(regionsStats) {
+    const statsRegionsList = document.getElementById('statsRegionsList');
+    if (!statsRegionsList) return;
+    
+    console.log('Updating regions statistics with data:', regionsStats);
+    
+    // Сохраняем данные для экспорта
+    currentRegionsStats = regionsStats;
+    
+    let regionsHtml = '';
+    
+    // Сортируем области по количеству базаров
+    const sortedRegions = Object.entries(regionsStats).sort((a, b) => b[1].totalBazars - a[1].totalBazars);
+    
+    for (const [regionName, stats] of sortedRegions) {
+        console.log(`Processing region ${regionName}:`, stats);
+        regionsHtml += `
+            <div class="stats-region-item">
+                <div class="stats-region-header">
+                    <div class="stats-region-name">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${regionName}</span>
+                    </div>
+                </div>
+                <div class="stats-region-stats">
+                    <div class="stats-region-stat bazars">
+                        <div class="stat-number">${stats.totalBazars}</div>
+                        <div class="stat-label" data-i18n="statistics.bazarsInRegion">Базаров в области</div>
+                    </div>
+                    <div class="stats-region-stat online-bazars">
+                        <div class="stat-number">${stats.onlineBazars || 0}</div>
+                        <div class="stat-label" data-i18n="statistics.onlineBazars">Онлайн</div>
+                    </div>
+                    <div class="stats-region-stat offline-bazars">
+                        <div class="stat-number">${stats.offlineBazars || 0}</div>
+                        <div class="stat-label" data-i18n="statistics.offlineBazars">Оффлайн</div>
+                    </div>
+                    <div class="stats-region-stat cameras">
+                        <div class="stat-number">${stats.totalCameras}</div>
+                        <div class="stat-label" data-i18n="statistics.camerasInRegion">Камер в области</div>
+                    </div>
+                    <div class="stats-region-stat online-cameras">
+                        <div class="stat-number">${stats.onlineCameras || 0}</div>
+                        <div class="stat-label" data-i18n="statistics.workingCameras">Работает</div>
+                    </div>
+                    <div class="stats-region-stat offline-cameras">
+                        <div class="stat-number">${stats.offlineCameras || 0}</div>
+                        <div class="stat-label" data-i18n="statistics.notWorkingCameras">Не работает</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (regionsHtml === '') {
+        regionsHtml = `
+            <div class="stats-region-item">
+                <div class="stats-region-header">
+                    <div class="stats-region-name">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Нет данных</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    statsRegionsList.innerHTML = regionsHtml;
+}
+
 function toggleFullscreen() {
+    if (!mapModal) {
+        mapModal = document.getElementById('mapModal');
+    }
     if (!mapModal) return;
     
     const isFullscreen = mapModal.classList.contains('fullscreen');
@@ -1846,7 +3174,7 @@ async function updateMapMarkers() {
     }
 }
 
-function updateOverviewPanel(online, offline) {
+async function updateOverviewPanel(online, offline) {
     const overviewOnline = document.getElementById('overviewOnline');
     const overviewOffline = document.getElementById('overviewOffline');
     const overviewApiOnline = document.getElementById('overviewApiOnline');
@@ -1864,6 +3192,63 @@ function updateOverviewPanel(online, offline) {
     // БД статус - считаем количество онлайн/оффлайн БД для всех базаров
     if (overviewDbOnline) overviewDbOnline.textContent = online; // Количество онлайн БД = количеству онлайн базаров
     if (overviewDbOffline) overviewDbOffline.textContent = offline; // Количество оффлайн БД = количеству оффлайн базаров
+    
+    // Загружаем и обновляем статистику камер для боковой панели
+    try {
+        const response = await fetch(`${API_BASE_URL}/cameras/statistics`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                updateMapOverviewCameras(result.data);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load cameras statistics for map overview:', error);
+    }
+}
+
+function updateMapOverviewCameras(data) {
+    // Обновляем статистику камер в боковой панели карты
+    const mapOverviewCameras = document.querySelector('.map-overview-cameras');
+    if (mapOverviewCameras) {
+        mapOverviewCameras.innerHTML = `
+            <div class="overview-section">
+                <div class="overview-section-header">
+                    <i class="fas fa-video"></i>
+                    <span>${t('cameras.title')}</span>
+                </div>
+                <div class="overview-stats">
+                    <div class="overview-stat">
+                        <div class="stat-dot online"></div>
+                        <span class="stat-label">${t('statistics.totalCameras')}</span>
+                        <span class="stat-value">${data.totalCameras || 0}</span>
+                    </div>
+                    <div class="overview-stat">
+                        <div class="stat-dot online"></div>
+                        <span class="stat-label">${t('statistics.workingCameras')}</span>
+                        <span class="stat-value">${data.onlineCameras || 0}</span>
+                    </div>
+                    <div class="overview-stat">
+                        <div class="stat-dot offline"></div>
+                        <span class="stat-label">${t('statistics.notWorkingCameras')}</span>
+                        <span class="stat-value">${data.offlineCameras || 0}</span>
+                    </div>
+                </div>
+                <div class="overview-camera-types">
+                    ${data.rastaFoodCameras > 0 ? `<div class="camera-type-overview"><i class="fas fa-utensils"></i> ${t('cameras.rastaFood')}: ${data.rastaFoodCameras}</div>` : ''}
+                    ${data.peopleCountingCameras > 0 ? `<div class="camera-type-overview"><i class="fas fa-users"></i> ${t('cameras.peopleCounting')}: ${data.peopleCountingCameras}</div>` : ''}
+                    ${data.animalCameras > 0 ? `<div class="camera-type-overview"><i class="fas fa-paw"></i> ${t('cameras.animals')}: ${data.animalCameras}</div>` : ''}
+                    ${data.vehicleCountingCameras > 0 ? `<div class="camera-type-overview"><i class="fas fa-car"></i> ${t('cameras.vehicleCounting')}: ${data.vehicleCountingCameras}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
 }
 
 // ===============================================
@@ -1917,6 +3302,11 @@ function openAddServiceModal() {
     elements.addServiceModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     updateAddServiceModalText();
+}
+
+// Алиас для совместимости
+function showAddServiceModal() {
+    openAddServiceModal();
 }
 
 function closeAddServiceModal() {
@@ -2025,6 +3415,7 @@ async function openEditServiceModal(ip, port) {
         document.getElementById('editServicePort').value = service.port;
         document.getElementById('editServiceBackendPort').value = service.backend_port;
         document.getElementById('editServicePgPort').value = service.pg_port;
+        document.getElementById('editServiceStreamPort').value = service.stream_port || '';
         
         // Заполняем контакты
         if (service.contact_click) {
@@ -2286,218 +3677,61 @@ async function downloadLogs() {
 }
 
 // ===============================================
-// Event Listeners for Modals
+// Preview Intro
 // ===============================================
-// Add Service Modal
-if (elements.addServiceBtn) {
-    elements.addServiceBtn.addEventListener('click', openAddServiceModal);
-}
-if (elements.closeAddServiceBtn) {
-    elements.closeAddServiceBtn.addEventListener('click', closeAddServiceModal);
-}
+function initPreview() {
+    const overlay = document.getElementById('previewOverlay');
+    const video = document.getElementById('previewVideo');
+    const skipBtn = document.getElementById('skipPreviewBtn');
 
-// Edit Service Modal
-const closeEditServiceBtn = document.getElementById('closeEditServiceBtn');
-if (closeEditServiceBtn) {
-    closeEditServiceBtn.addEventListener('click', closeEditServiceModal);
-}
-const cancelEditService = document.getElementById('cancelEditService');
-if (cancelEditService) {
-    cancelEditService.addEventListener('click', closeEditServiceModal);
-}
+    if (!overlay || !video) {
+        // Если превью отсутствует, сразу загружаем данные
+        loadAllBazars();
+        return;
+    }
 
-// Logs Modal
-if (elements.logsBtn) {
-    elements.logsBtn.addEventListener('click', openLogsModal);
-}
-if (elements.closeLogsBtn) {
-    elements.closeLogsBtn.addEventListener('click', closeLogsModal);
-}
+    // Блокируем скролл на время превью
+    document.body.style.overflow = 'hidden';
 
-// Закрытие по клику на overlay
-document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            closeAddServiceModal();
-            closeEditServiceModal();
-            closeLogsModal();
-        }
-    });
-});
+    const endPreview = () => {
+        try { video.pause(); } catch (e) {}
+        overlay.classList.add('hidden');
+        setTimeout(() => {
+            overlay.remove();
+            document.body.style.overflow = '';
+        }, 300);
+        // Запускаем основную загрузку
+        loadAllBazars();
+    };
 
-// Раскрытие/скрытие дополнительных полей
-const toggleAdditional = document.getElementById('toggleAdditional');
-if (toggleAdditional) {
-    toggleAdditional.addEventListener('click', function() {
-        const content = document.getElementById('additionalContent');
-        const button = this;
-        
-        button.classList.toggle('active');
-        content.classList.toggle('active');
-    });
-}
+    // Попытка автоплея
+    try {
+        video.muted = true;
+        const playPromise = video.play();
+        if (playPromise && playPromise.catch) {
+            playPromise.catch(() => {
+                // Если автоплей заблокирован — воспроизводим по клику
+                overlay.addEventListener('click', () => {
+                    video.play().catch(() => {}); // повтор
+                }, { once: true });
+            });
+        }
+    } catch (e) {
+        // В случае ошибки просто продолжаем
+        endPreview();
+    }
 
-// Раскрытие/скрытие дополнительных полей в форме редактирования
-const toggleEditAdditional = document.getElementById('toggleEditAdditional');
-if (toggleEditAdditional) {
-    toggleEditAdditional.addEventListener('click', function() {
-        const content = document.getElementById('editAdditionalContent');
-        const button = this;
-        
-        button.classList.toggle('active');
-        content.classList.toggle('active');
-    });
-}
+    // По окончанию видео — продолжить
+    video.addEventListener('ended', endPreview, { once: true });
+    video.addEventListener('error', endPreview, { once: true });
 
-// Форма добавления сервиса
-if (elements.addServiceForm) {
-    elements.addServiceForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(elements.addServiceForm);
-        const serviceData = {
-            name: formData.get('name'),
-            city: formData.get('city'),
-            ip: formData.get('ip'),
-            port: parseInt(formData.get('port')),
-            backend_port: parseInt(formData.get('backend_port')),
-            pg_port: parseInt(formData.get('pg_port'))
-        };
-        
-        // Добавляем контакты если заполнены
-        const contactClick = formData.get('contact_click');
-        const contactClickName = formData.get('contact_click_name');
-        const contactScc = formData.get('contact_scc');
-        const contactSccName = formData.get('contact_scc_name');
-        
-        if (contactClick && contactClick.trim()) {
-            serviceData.contact_click = '+998' + contactClick.trim();
-        }
-        if (contactClickName && contactClickName.trim()) {
-            serviceData.contact_click_name = contactClickName.trim();
-        }
-        if (contactScc && contactScc.trim()) {
-            serviceData.contact_scc = '+998' + contactScc.trim();
-        }
-        if (contactSccName && contactSccName.trim()) {
-            serviceData.contact_scc_name = contactSccName.trim();
-        }
-        
-        // Добавляем координаты если заполнены
-        const latitude = formData.get('latitude');
-        const longitude = formData.get('longitude');
-        if (latitude && latitude.trim()) {
-            serviceData.latitude = parseFloat(latitude);
-        }
-        if (longitude && longitude.trim()) {
-            serviceData.longitude = parseFloat(longitude);
-        }
-        
-        addService(serviceData);
-    });
-}
-
-// Кнопка отмены формы
-const cancelAddService = document.getElementById('cancelAddService');
-if (cancelAddService) {
-    cancelAddService.addEventListener('click', () => {
-        if (elements.addServiceForm) {
-            elements.addServiceForm.reset();
-        }
-        closeAddServiceModal();
-    });
-}
-
-// Форма редактирования сервиса
-const editServiceForm = document.getElementById('editServiceForm');
-if (editServiceForm) {
-    editServiceForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(editServiceForm);
-        const serviceId = parseInt(document.getElementById('editServiceId').value);
-        
-        if (isNaN(serviceId)) {
-            showNotification('Ошибка: ID сервиса не определен. Попробуйте открыть форму заново.', 'error');
-            return;
-        }
-        
-        const serviceData = {
-            name: formData.get('name'),
-            city: formData.get('city'),
-            ip: formData.get('ip'),
-            port: parseInt(formData.get('port')),
-            backend_port: parseInt(formData.get('backend_port')),
-            pg_port: parseInt(formData.get('pg_port'))
-        };
-        
-        // Добавляем контакты если заполнены
-        const contactClick = formData.get('contact_click');
-        const contactClickName = formData.get('contact_click_name');
-        const contactScc = formData.get('contact_scc');
-        const contactSccName = formData.get('contact_scc_name');
-        
-        if (contactClick && contactClick.trim()) {
-            serviceData.contact_click = '+998' + contactClick.trim();
-        } else {
-            serviceData.contact_click = null;
-        }
-        if (contactClickName && contactClickName.trim()) {
-            serviceData.contact_click_name = contactClickName.trim();
-        } else {
-            serviceData.contact_click_name = null;
-        }
-        if (contactScc && contactScc.trim()) {
-            serviceData.contact_scc = '+998' + contactScc.trim();
-        } else {
-            serviceData.contact_scc = null;
-        }
-        if (contactSccName && contactSccName.trim()) {
-            serviceData.contact_scc_name = contactSccName.trim();
-        } else {
-            serviceData.contact_scc_name = null;
-        }
-        
-        // Добавляем координаты если заполнены
-        const latitude = formData.get('latitude');
-        const longitude = formData.get('longitude');
-        if (latitude && latitude.trim()) {
-            serviceData.latitude = parseFloat(latitude);
-        } else {
-            serviceData.latitude = null;
-        }
-        if (longitude && longitude.trim()) {
-            serviceData.longitude = parseFloat(longitude);
-        } else {
-            serviceData.longitude = null;
-        }
-        
-        updateService(serviceId, serviceData);
-    });
-}
-
-// Кнопка удаления в форме редактирования
-const deleteEditService = document.getElementById('deleteEditService');
-if (deleteEditService) {
-    deleteEditService.addEventListener('click', () => {
-        const serviceId = parseInt(document.getElementById('editServiceId').value);
-        closeEditServiceModal();
-        deleteService(serviceId);
-    });
-}
-
-// Фильтры логов
-if (elements.logStatusFilter) {
-    elements.logStatusFilter.addEventListener('change', loadLogsList);
-}
-if (elements.logLimit) {
-    elements.logLimit.addEventListener('change', loadLogsList);
-}
-
-// Скачивание логов
-const downloadLogsBtn = document.getElementById('downloadLogsBtn');
-if (downloadLogsBtn) {
-    downloadLogsBtn.addEventListener('click', downloadLogs);
+    // Кнопка "Пропустить"
+    if (skipBtn) {
+        skipBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            endPreview();
+        });
+    }
 }
 
 // ===============================================
@@ -2506,13 +3740,21 @@ if (downloadLogsBtn) {
 console.log('=== Starting application initialization ===');
 initLanguage();
 initTheme();
+initParticles(); // теперь безопасно
 initMap();
+initCalendar();
+initSidebar();
 
 // Инициализируем элементы карты после загрузки DOM
 console.log('DOM loaded, initializing map controls...');
 initMapControls();
 
+// Вместо мгновенной загрузки — сначала превью, затем loadAllBazars()
+if (document.getElementById('previewOverlay')) {
+    initPreview();
+} else {
 loadAllBazars();
+}
 console.log('=== Application initialization complete ===');
 
 // Optional: Auto-refresh every 60 seconds

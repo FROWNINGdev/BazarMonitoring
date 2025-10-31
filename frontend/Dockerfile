@@ -13,6 +13,8 @@ COPY script.js /usr/share/nginx/html/
 COPY styles.css /usr/share/nginx/html/
 COPY favicon.png /usr/share/nginx/html/
 COPY fon.jpg /usr/share/nginx/html/
+# Добавлено: превью видео
+COPY preview /usr/share/nginx/html/preview/
 
 # Копируем GeoJSON файлы
 COPY Uzb /usr/share/nginx/html/Uzb/
@@ -22,4 +24,3 @@ EXPOSE 80
 
 # Запускаем nginx
 CMD ["nginx", "-g", "daemon off;"]
-

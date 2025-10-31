@@ -11,8 +11,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+    <!-- Preview overlay -->
+    <div id="previewOverlay" class="preview-overlay">
+        <video id="previewVideo" class="preview-video" src="preview/preview.mp4" autoplay muted playsinline></video>
+        <button id="skipPreviewBtn" class="preview-skip" aria-label="Пропустить превью">
+            <i class="fas fa-forward"></i>
+            <span>Пропустить</span>
+        </button>
+    </div>
+
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+    
     <!-- Top Navigation -->
     <header class="top-nav">
         <div class="nav-container">
@@ -21,25 +35,12 @@
             </div>
             
             <div class="nav-actions">
-                <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m" 
-                   target="_blank" 
-                   class="nav-btn">
-                    <i class="fas fa-chart-line"></i>
-                    <span data-i18n="nav.analytics">Аналитика</span>
-                </a>
-                <a href="http://192.168.168.36:9000/#!/home" 
-                   target="_blank" 
-                   class="nav-btn">
-                    <i class="fas fa-cubes"></i>
-                    <span data-i18n="nav.containers">Контейнеры</span>
-                </a>
-                <button id="addServiceBtn" class="nav-btn add-service-btn">
-                    <i class="fas fa-plus-circle"></i>
-                    <span data-i18n="nav.addService">Добавить базар</span>
+                <button id="mapBtn" class="nav-btn map-btn">
+                    <i class="fas fa-map"></i>
+                    <span data-i18n="nav.map">Карта</span>
                 </button>
-                <button id="logsBtn" class="nav-btn logs-btn">
-                    <i class="fas fa-file-alt"></i>
-                    <span data-i18n="nav.logs">Логи</span>
+                <button id="themeToggleBtn" class="nav-btn theme-toggle-btn">
+                    <i class="fas fa-moon"></i>
                 </button>
                 <button id="langToggle" class="nav-btn lang-toggle">
                     <i class="fas fa-globe"></i>
@@ -48,6 +49,97 @@
             </div>
         </div>
     </header>
+
+    <!-- Sidebar Open Button (shown when sidebar is closed) -->
+    <button id="sidebarOpenBtn" class="sidebar-open-btn" onclick="toggleSidebar()">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <!-- Sidebar Menu -->
+    <div id="sidebarMenu" class="sidebar-menu">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3 data-i18n="sidebar.title">Меню</h3>
+                <button class="sidebar-close" onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sidebar-body">
+                <div class="sidebar-section">
+                    <h4 data-i18n="sidebar.statistics">Статистика</h4>
+                    <button id="generalStatsBtn" class="sidebar-btn">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-i18n="nav.generalStats">Общая статистика</span>
+                    </button>
+                </div>
+                
+                
+                <div class="sidebar-section">
+                    <h4 data-i18n="sidebar.external">Внешние сервисы</h4>
+                    <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m" 
+                       target="_blank" 
+                       class="sidebar-btn">
+                        <i class="fas fa-chart-line"></i>
+                        <span data-i18n="nav.analytics">Аналитика</span>
+                    </a>
+                    <a href="http://192.168.168.36:9000/#!/home" 
+                       target="_blank" 
+                       class="sidebar-btn">
+                        <i class="fas fa-cubes"></i>
+                        <span data-i18n="nav.containers">Контейнеры</span>
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4 data-i18n="sidebar.management">Управление</h4>
+                    <button class="sidebar-btn" onclick="showAddServiceModal()">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="nav.addService">Добавить базар</span>
+                    </button>
+                    <button class="sidebar-btn" onclick="showLogsModal()">
+                        <i class="fas fa-list"></i>
+                        <span data-i18n="nav.logs">Логи</span>
+                    </button>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4 data-i18n="sidebar.calendar">Календарь</h4>
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <div class="current-date-info">
+                                <div class="current-date-box" id="currentDateBox">
+                                    <span id="currentDay">--</span>
+                                </div>
+                                <div class="month-info">
+                                    <h2 id="currentMonth">--</h2>
+                                    <div class="text-animation-container">
+                                        <p id="currentYear">----</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="add-button" onclick="toggleCalendar()">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="weekdays">
+                            <span>Пн</span>
+                            <span>Вт</span>
+                            <span>Ср</span>
+                            <span>Чт</span>
+                            <span>Пт</span>
+                            <span>Сб</span>
+                            <span>Вс</span>
+                        </div>
+                        
+                        <div class="days-container expanded" id="daysContainer">
+                            <!-- Days will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Dashboard -->
     <main class="dashboard">
@@ -116,6 +208,7 @@
                 </div>
             </section>
 
+
             <!-- Control Panel -->
             <section class="control-section">
                 <div class="control-bar">
@@ -150,13 +243,6 @@
                 </div>
             </section>
 
-            <!-- Geographic Map Button -->
-            <section class="map-section">
-                <button id="openMapBtn" class="map-open-btn">
-                    <i class="fas fa-map-marked-alt"></i>
-                    <span data-i18n="dashboard.showMap">Показать карту</span>
-                </button>
-            </section>
 
             <!-- Map Modal -->
             <div id="mapModal" class="map-modal">
@@ -242,6 +328,114 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Cameras Statistics Section -->
+                                <div class="map-overview-cameras">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Statistics Modal -->
+            <div id="generalStatsModal" class="stats-modal">
+                <div class="stats-modal-overlay"></div>
+                <div class="stats-modal-content">
+                    <div class="stats-modal-header">
+                        <h2 data-i18n="statistics.title">Общая статистика базаров</h2>
+                        <div class="stats-modal-actions">
+                            <button class="export-excel-btn" onclick="exportToExcel().catch(console.error)" title="Экспорт в Excel">
+                                <i class="fas fa-file-excel"></i>
+                            </button>
+                            <button class="map-modal-close" onclick="closeGeneralStats()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stats-modal-body">
+                        <!-- Общая статистика -->
+                        <div class="stats-overview-section">
+                            <h3 data-i18n="statistics.overview">Общая статистика</h3>
+                            <div class="stats-overview-grid">
+                                <div class="stats-overview-card">
+                                    <div class="stats-overview-icon">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                    <div class="stats-overview-info">
+                                        <div class="stats-overview-number" id="totalBazarsStats">0</div>
+                                        <div class="stats-overview-label" data-i18n="statistics.totalBazars">Всего базаров</div>
+                                    </div>
+                                </div>
+                                <div class="stats-overview-card online">
+                                    <div class="stats-overview-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="stats-overview-info">
+                                        <div class="stats-overview-number" id="onlineBazarsStats">0</div>
+                                        <div class="stats-overview-label" data-i18n="statistics.onlineBazars">Онлайн</div>
+                                    </div>
+                                </div>
+                                <div class="stats-overview-card offline">
+                                    <div class="stats-overview-icon">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                    <div class="stats-overview-info">
+                                        <div class="stats-overview-number" id="offlineBazarsStats">0</div>
+                                        <div class="stats-overview-label" data-i18n="statistics.offlineBazars">Оффлайн</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Статистика камер -->
+                        <div class="stats-cameras-section">
+                            <h3 data-i18n="statistics.cameras">Статистика камер</h3>
+                            <div class="stats-cameras-grid">
+                                <div class="stats-cameras-card">
+                                    <div class="stats-cameras-icon">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div class="stats-cameras-info">
+                                        <div class="stats-cameras-number" id="totalCamerasStats">0</div>
+                                        <div class="stats-cameras-label" data-i18n="statistics.totalCameras">Всего камер</div>
+                                    </div>
+                                </div>
+                                <div class="stats-cameras-card online">
+                                    <div class="stats-cameras-icon">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div class="stats-cameras-info">
+                                        <div class="stats-cameras-number" id="onlineCamerasStats">0</div>
+                                        <div class="stats-cameras-label" data-i18n="statistics.workingCameras">Работает</div>
+                                    </div>
+                                </div>
+                                <div class="stats-cameras-card offline">
+                                    <div class="stats-cameras-icon">
+                                        <i class="fas fa-video-slash"></i>
+                                    </div>
+                                    <div class="stats-cameras-info">
+                                        <div class="stats-cameras-number" id="offlineCamerasStats">0</div>
+                                        <div class="stats-cameras-label" data-i18n="statistics.notWorkingCameras">Не работает</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Статистика по областям -->
+                        <div class="stats-regions-section">
+                            <h3 data-i18n="statistics.byRegions">Статистика по областям</h3>
+                            <div class="stats-regions-list" id="statsRegionsList">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Детальная статистика по базарам -->
+                        <div class="stats-detailed-section">
+                            <h3 data-i18n="statistics.detailed">Детальная статистика по базарам</h3>
+                            <div class="stats-detailed-list" id="statsDetailedList">
+                                <!-- Will be populated by JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -297,6 +491,16 @@
                                         <div class="form-group">
                                             <label for="servicePgPort">Порт PostgreSQL</label>
                                             <input type="number" id="servicePgPort" name="pg_port" placeholder="5400" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="serviceStreamPort">Порт Stream</label>
+                                            <input type="number" id="serviceStreamPort" name="stream_port" placeholder="8554">
+                                        </div>
+                                        <div class="form-group">
+                                            <!-- Empty column for alignment -->
                                         </div>
                                     </div>
                                 
@@ -426,6 +630,16 @@
                                     <div class="form-group">
                                         <label for="editServicePgPort">Порт PostgreSQL</label>
                                         <input type="number" id="editServicePgPort" name="pg_port" placeholder="5400">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editServiceStreamPort">Порт Stream</label>
+                                        <input type="number" id="editServiceStreamPort" name="stream_port" placeholder="8554">
+                                    </div>
+                                    <div class="form-group">
+                                        <!-- Empty column for alignment -->
                                     </div>
                                 </div>
                             
