@@ -2,211 +2,211 @@
 
 This document describes the process of collaborative work on the project and creating co-authored commits.
 
-## 🤝 Совместные коммиты
+## 🤝 Co-authored Commits
 
-### Способ 1: Через сообщение коммита (GitHub UI)
+### Method 1: Through Commit Message (GitHub UI)
 
-При создании коммита через GitHub интерфейс, добавьте соавторов:
+When creating a commit through the GitHub interface, add co-authors:
 
 ```
-feat: добавлена новая функция
+feat: add new feature
 
-Co-authored-by: Имя Коллеги <email@example.com>
+Co-authored-by: Colleague Name <email@example.com>
 ```
 
-GitHub автоматически распознает это и покажет обоих авторов в истории коммитов.
+GitHub will automatically recognize this and show both authors in the commit history.
 
-### Способ 2: Через командную строку
+### Method 2: Through Command Line
 
-#### Вариант А: Co-authored-by trailer
+#### Option A: Co-authored-by trailer
 
 ```bash
-git commit -m "feat: совместная работа над функцией
+git commit -m "feat: collaborative work on feature
 
-Детальное описание изменений...
+Detailed description of changes...
 
-Co-authored-by: Имя Коллеги <email@example.com>"
+Co-authored-by: Colleague Name <email@example.com>"
 ```
 
-#### Вариант Б: Множественные авторы
+#### Option B: Multiple authors
 
 ```bash
-git commit -m "feat: добавлена новая функция
+git commit -m "feat: add new feature
 
-Co-authored-by: Первый Участник <first@example.com>
-Co-authored-by: Второй Участник <second@example.com>
+Co-authored-by: First Participant <first@example.com>
+Co-authored-by: Second Participant <second@example.com>"
 ```
 
-### Способ 3: Настройка git config
+### Method 3: Git config setup
 
-Если вы постоянно работаете в паре:
+If you work together regularly:
 
 ```bash
-# Установите несколько авторов
-git config user.name "Ваше Имя и Имя Коллеги"
+# Set multiple authors
+git config user.name "Your Name and Colleague Name"
 git config user.email "your-email@example.com"
 
-# Или используйте для конкретного коммита
-git -c user.name="Ваше Имя и Имя Коллеги" \
+# Or use for specific commit
+git -c user.name="Your Name and Colleague Name" \
     -c user.email="your-email@example.com" \
-    commit -m "feat: совместная работа"
+    commit -m "feat: collaborative work"
 ```
 
-## 📝 Примеры сообщений коммитов
+## 📝 Commit Message Examples
 
-### С одним соавтором
+### With one co-author
 
 ```bash
-git commit -m "feat: добавлена функция мониторинга камер
+git commit -m "feat: add camera monitoring feature
 
-Реализована статистика по камерам с ROI для каждого базара.
-Добавлена детальная информация в Лист 2 Excel экспорта.
+Implemented camera statistics with ROI for each bazaar.
+Added detailed information to Excel export List 2.
 
-Co-authored-by: Ваш Коллега <colleague@example.com>"
+Co-authored-by: Your Colleague <colleague@example.com>"
 ```
 
-### С несколькими соавторами
+### With multiple co-authors
 
 ```bash
-git commit -m "refactor: рефакторинг API endpoints
+git commit -m "refactor: refactor API endpoints
 
-Оптимизирована работа с базой данных.
-Улучшена обработка ошибок.
+Optimized database operations.
+Improved error handling.
 
-Co-authored-by: Разработчик 1 <dev1@example.com>
-Co-authored-by: Разработчик 2 <dev2@example.com>
-Co-authored-by: Тестировщик <tester@example.com>"
+Co-authored-by: Developer 1 <dev1@example.com>
+Co-authored-by: Developer 2 <dev2@example.com>
+Co-authored-by: Tester <tester@example.com>"
 ```
 
-### Исправление ошибки
+### Bug fix
 
 ```bash
-git commit -m "fix: исправлена ошибка миграций базы данных
+git commit -m "fix: fix database migration error
 
-Решена проблема с несуществующей ревизией 038284fc03d5.
-Добавлен скрипт reset_migrations.py для сброса миграций.
+Resolved issue with non-existent revision 038284fc03d5.
+Added reset_migrations.py script to reset migrations.
 
-Co-authored-by: Ваш Коллега <colleague@example.com>"
+Co-authored-by: Your Colleague <colleague@example.com>"
 ```
 
-## 🔄 Процесс совместной работы
+## 🔄 Collaboration Process
 
-### Шаг 1: Согласование изменений
+### Step 1: Agreement on Changes
 
-Перед началом работы:
-- Обсудите задачу в Issues или Discussion
-- Разделите ответственность между участниками
-- Договоритесь о подходе к реализации
+Before starting work:
+- Discuss the task in Issues or Discussion
+- Divide responsibility between participants
+- Agree on implementation approach
 
-### Шаг 2: Создание ветки
+### Step 2: Create Branch
 
 ```bash
-# Один из участников создает ветку
+# One participant creates a branch
 git checkout -b feature/joint-feature
 
-# Или используйте общую ветку
+# Or use a shared branch
 git checkout -b feature/collaboration-$(date +%Y%m%d)
 ```
 
-### Шаг 3: Работа над кодом
+### Step 3: Work on Code
 
-Каждый участник работает над своей частью:
-- Участник 1: Backend изменения
-- Участник 2: Frontend изменения
-- Или работа по парам (pair programming)
+Each participant works on their part:
+- Participant 1: Backend changes
+- Participant 2: Frontend changes
+- Or pair programming
 
-### Шаг 4: Коммиты
+### Step 4: Commits
 
-#### Вариант А: Отдельные коммиты от каждого
+#### Option A: Separate commits from each
 
 ```bash
-# Участник 1 делает коммит
-git commit -m "feat(backend): добавлен новый endpoint"
+# Participant 1 makes commit
+git commit -m "feat(backend): add new endpoint"
 
-# Участник 2 делает коммит
-git commit -m "feat(frontend): добавлен UI для нового endpoint"
+# Participant 2 makes commit
+git commit -m "feat(frontend): add UI for new endpoint"
 ```
 
-#### Вариант Б: Совместный коммит
+#### Option B: Joint commit
 
 ```bash
-# Один участник создает коммит с соавторами
+# One participant creates commit with co-authors
 git add .
-git commit -m "feat: полная реализация функции
+git commit -m "feat: complete feature implementation
 
-Backend: добавлен API endpoint
-Frontend: добавлен UI компонент
+Backend: added API endpoint
+Frontend: added UI component
 
 Co-authored-by: Backend Dev <backend@example.com>
 Co-authored-by: Frontend Dev <frontend@example.com>"
 ```
 
-### Шаг 5: Push и Pull Request
+### Step 5: Push and Pull Request
 
 ```bash
-# Push ветки
+# Push branch
 git push origin feature/joint-feature
 
-# Создайте Pull Request на GitHub
-# Укажите всех участников в описании PR
+# Create Pull Request on GitHub
+# Mention all participants in PR description
 ```
 
-## 📋 Шаблон Pull Request для совместной работы
+## 📋 Pull Request Template for Collaboration
 
 ```markdown
-## Описание
-Краткое описание изменений, над которыми работали вместе.
+## Description
+Brief description of changes you worked on together.
 
-## Участники
-- @username1 - работа над backend
-- @username2 - работа над frontend
-- @username3 - тестирование
+## Participants
+- @username1 - backend work
+- @username2 - frontend work
+- @username3 - testing
 
-## Тип изменений
-- [ ] Новые функции
-- [ ] Исправление ошибок
-- [ ] Рефакторинг
-- [ ] Документация
+## Type of Changes
+- [ ] New features
+- [ ] Bug fixes
+- [ ] Refactoring
+- [ ] Documentation
 
-## Как протестировать
-1. Шаг 1
-2. Шаг 2
-3. Шаг 3
+## How to Test
+1. Step 1
+2. Step 2
+3. Step 3
 
-## Скриншоты (если применимо)
-[Добавьте скриншоты]
+## Screenshots (if applicable)
+[Add screenshots]
 
-## Чеклист
-- [ ] Код протестирован
-- [ ] Документация обновлена
-- [ ] Нет конфликтов
-- [ ] Все участники согласны с изменениями
+## Checklist
+- [ ] Code tested
+- [ ] Documentation updated
+- [ ] No conflicts
+- [ ] All participants agree with changes
 ```
 
-## ✅ Проверка совместных коммитов
+## ✅ Verify Co-authored Commits
 
-После создания коммита проверьте:
+After creating a commit, verify:
 
 ```bash
-# Просмотр последнего коммита
+# View last commit
 git show
 
-# Просмотр истории с авторами
+# View history with authors
 git log --format="%h %an <%ae> %s"
 
-# Проверка на GitHub
-# Перейдите в репозиторий -> Insights -> Contributors
+# Check on GitHub
+# Go to repository -> Insights -> Contributors
 ```
 
-## 🎯 Лучшие практики
+## 🎯 Best Practices
 
-1. **Всегда указывайте соавторов** в важных изменениях
-2. **Используйте понятные сообщения** коммитов
-3. **Обсуждайте изменения** перед коммитом
-4. **Тестируйте вместе** перед отправкой PR
-5. **Рецензируйте код** друг друга
+1. **Always specify co-authors** in important changes
+2. **Use clear commit messages**
+3. **Discuss changes** before committing
+4. **Test together** before submitting PR
+5. **Review each other's code**
 
-## 📚 Дополнительные ресурсы
+## 📚 Additional Resources
 
 - [GitHub Co-authored commits](https://github.blog/2018-01-29-commit-together-with-co-authors/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
@@ -214,5 +214,4 @@ git log --format="%h %an <%ae> %s"
 
 ---
 
-Удачной совместной работы! 🚀
-
+Happy collaborating! 🚀
