@@ -253,6 +253,8 @@ bazarmonitoring/
 
 We welcome any contributions to the project! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
+See also [PAIR_EXTRAORDINAIRE.md](PAIR_EXTRAORDINAIRE.md) for information about collaborative development.
+
 ### How to Contribute
 
 1. **Fork** the repository
