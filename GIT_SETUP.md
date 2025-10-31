@@ -74,7 +74,7 @@ Co-authored-by: Второй Участник <second@example.com>"
 
 1. **Создайте репозиторий на GitHub**
    - Перейдите на https://github.com/new
-   - Название: `bazariplist`
+   - Название: `bazarmonitoring`
    - Описание: "Система мониторинга базаров Узбекистана"
    - Тип: Public (для open source)
    - НЕ добавляйте README, .gitignore или LICENSE (уже есть локально)
@@ -83,7 +83,7 @@ Co-authored-by: Второй Участник <second@example.com>"
 
 ```bash
 # Добавьте удаленный репозиторий
-git remote add origin https://github.com/yourusername/bazariplist.git
+git remote add origin https://github.com/FROWNINGdev/bazarmonitoring.git
 
 # Проверьте
 git remote -v
@@ -106,7 +106,7 @@ git push -u origin master
 git remote -v
 
 # Если origin не настроен, добавьте его
-git remote add origin https://github.com/yourusername/bazariplist.git
+git remote add origin https://github.com/FROWNINGdev/bazarmonitoring.git
 
 # Обновите основную ветку
 git branch -M main
@@ -164,7 +164,7 @@ git add .
 # 3. Создание первого коммита (совместного)
 git commit -m "docs: первоначальная документация проекта
 
-Добавлена полная документация для open source проекта BazarIPList:
+Добавлена полная документация для open source проекта BazarMonitoring:
 - README.md с badges, описанием и инструкциями
 - LICENSE (MIT) для open source
 - CONTRIBUTING.md - руководство для контрибьюторов
@@ -178,7 +178,7 @@ Co-authored-by: Ваш Коллега <colleague@example.com>"
 git branch -M main
 
 # 5. Добавление удаленного репозитория
-git remote add origin https://github.com/yourusername/bazariplist.git
+git remote add origin https://github.com/FROWNINGdev/bazarmonitoring.git
 
 # 6. Push в GitHub
 git push -u origin main
@@ -194,7 +194,7 @@ git log -1
 git log --format="%h - %an <%ae> : %s"
 
 # Посмотреть на GitHub
-# Откройте https://github.com/yourusername/bazariplist
+# Откройте https://github.com/FROWNINGdev/bazarmonitoring
 # Перейдите в Insights -> Contributors
 ```
 
@@ -203,11 +203,11 @@ git log --format="%h - %an <%ae> : %s"
 После создания репозитория обновите URLs в README.md:
 
 ```markdown
-![GitHub stars](https://img.shields.io/github/stars/yourusername/bazariplist?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/bazariplist?style=social)
+![GitHub stars](https://img.shields.io/github/stars/FROWNINGdev/bazarmonitoring?style=social)
+![GitHub forks](https://img.shields.io/github/forks/FROWNINGdev/bazarmonitoring?style=social)
 ```
 
-Замените `yourusername` на ваш реальный username на GitHub.
+Замените `FROWNINGdev` на ваш реальный username на GitHub (если отличается).
 
 ## 📋 Чеклист перед публикацией
 

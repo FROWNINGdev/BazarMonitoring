@@ -1,6 +1,6 @@
 # 🤝 Руководство по внесению вклада
 
-Спасибо за интерес к участию в проекте BazarIPList! Мы рады любому вкладу.
+Спасибо за интерес к участию в проекте BazarMonitoring! Мы рады любому вкладу.
 
 ## 📋 Содержание
 
@@ -21,7 +21,7 @@
 
 Если вы нашли ошибку:
 
-1. Убедитесь, что ошибка еще не была зарегистрирована в [Issues](https://github.com/yourusername/bazariplist/issues)
+1. Убедитесь, что ошибка еще не была зарегистрирована в [Issues](https://github.com/FROWNINGdev/bazarmonitoring/issues)
 2. Если нет, создайте новый Issue с:
    - Четким описанием проблемы
    - Шагами для воспроизведения
@@ -43,8 +43,8 @@
 1. **Fork** репозитория
 2. **Клонируйте** ваш fork:
    ```bash
-   git clone https://github.com/yourusername/bazariplist.git
-   cd bazariplist
+   git clone https://github.com/FROWNINGdev/bazarmonitoring.git
+   cd bazarmonitoring
    ```
 3. **Создайте ветку** для вашего изменения:
    ```bash
@@ -258,7 +258,7 @@ git commit -m "feat: совместная работа над функцией
 
 ## ❓ Вопросы?
 
-Если у вас есть вопросы, создайте [Discussion](https://github.com/yourusername/bazariplist/discussions) или [Issue](https://github.com/yourusername/bazariplist/issues).
+Если у вас есть вопросы, создайте [Discussion](https://github.com/FROWNINGdev/bazarmonitoring/discussions) или [Issue](https://github.com/FROWNINGdev/bazarmonitoring/issues).
 
 ---
 

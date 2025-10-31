@@ -1,4 +1,4 @@
-# 🏪 BazarIPList - Система мониторинга базаров Узбекистана
+# 🏪 BazarMonitoring - Система мониторинга базаров Узбекистана
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
@@ -8,7 +8,7 @@
 
 > Современная веб-платформа для мониторинга и управления сетью базаров по всей территории Узбекистана с интерактивной картой, статистикой и аналитикой.
 
-![BazarIPList Preview](frontend/preview/preview.mp4)
+![BazarMonitoring Preview](frontend/preview/preview.mp4)
 
 ## 📋 Содержание
 
@@ -81,8 +81,8 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone https://github.com/yourusername/bazariplist.git
-cd bazariplist
+git clone https://github.com/FROWNINGdev/bazarmonitoring.git
+cd bazarmonitoring
 
 # Запустите приложение
 docker-compose up --build
@@ -97,8 +97,8 @@ docker-compose up --build
 
 ```bash
 # 1. Клонируйте репозиторий
-git clone https://github.com/yourusername/bazariplist.git
-cd bazariplist
+git clone https://github.com/FROWNINGdev/bazarmonitoring.git
+cd bazarmonitoring
 
 # 2. Установите зависимости backend
 cd backend
@@ -121,8 +121,8 @@ python -m http.server 8080
 
 1. **Клонирование репозитория**
    ```bash
-   git clone https://github.com/yourusername/bazariplist.git
-   cd bazariplist
+   git clone https://github.com/FROWNINGdev/bazarmonitoring.git
+   cd bazarmonitoring
    ```
 
 2. **Настройка переменных окружения** (опционально)
@@ -206,7 +206,7 @@ curl -X POST http://localhost:5000/api/services \
 ## 📁 Структура проекта
 
 ```
-bazariplist/
+bazarmonitoring/
 ├── backend/                 # Backend приложение
 │   ├── app.py              # Основной файл Flask приложения
 │   ├── init_db.py          # Инициализация базы данных
@@ -251,10 +251,10 @@ bazariplist/
 
 ## 👥 Авторы
 
-- **Ваше имя** - *Основной разработчик* - [GitHub](https://github.com/yourusername)
-- **Ваш коллега** - *Со-разработчик* - [GitHub](https://github.com/colleague)
+- **FROWNINGdev** - *Основной разработчик* - [GitHub](https://github.com/FROWNINGdev)
+- **asadullokhn** - *Со-разработчик* - [GitHub](https://github.com/asadullokhn)
 
-Смотрите также список [участников](https://github.com/yourusername/bazariplist/contributors), которые внесли вклад в этот проект.
+Смотрите также список [участников](https://github.com/FROWNINGdev/bazarmonitoring/contributors), которые внесли вклад в этот проект.
 
 ## 📝 Лицензия
 
@@ -269,15 +269,15 @@ bazariplist/
 ## 📞 Контакты
 
 - **Email**: support@bazar-monitoring.uz
-- **Issues**: [GitHub Issues](https://github.com/yourusername/bazariplist/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/bazariplist/discussions)
+- **Issues**: [GitHub Issues](https://github.com/FROWNINGdev/bazarmonitoring/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/FROWNINGdev/bazarmonitoring/discussions)
 
 ## ⭐ Статус проекта
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/bazariplist?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/bazariplist?style=social)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/bazariplist)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/bazariplist)
+![GitHub stars](https://img.shields.io/github/stars/FROWNINGdev/bazarmonitoring?style=social)
+![GitHub forks](https://img.shields.io/github/forks/FROWNINGdev/bazarmonitoring?style=social)
+![GitHub issues](https://img.shields.io/github/issues/FROWNINGdev/bazarmonitoring)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/FROWNINGdev/bazarmonitoring)
 
 ---
 
