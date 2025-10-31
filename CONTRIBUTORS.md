@@ -1,17 +1,17 @@
-# 👥 Контрибьюторы
+# 👥 Contributors
 
-Мы благодарим всех, кто внес вклад в проект BazarMonitoring!
+We thank everyone who has contributed to the BazarMonitoring project!
 
-## Основные разработчики
+## Main Developers
 
-- **FROWNINGdev** - Основной разработчик
-- **asadullokhn** - Со-разработчик
+- **FROWNINGdev** - Lead Developer
+- **asadullokhn** - Co-Developer
 
-## Как стать контрибьютором?
+## How to Become a Contributor?
 
-Если вы хотите внести вклад в проект, пожалуйста, ознакомьтесь с [CONTRIBUTING.md](CONTRIBUTING.md).
+If you want to contribute to the project, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-*Список автоматически обновляется на основе git истории коммитов.*
+*The list is automatically updated based on git commit history.*
 
