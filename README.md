@@ -8,7 +8,6 @@
 
 > Modern web platform for monitoring and managing a network of bazaars across Uzbekistan with interactive maps, statistics, and analytics.
 
-
 ## 📋 Table of Contents
 
 - [Features](#-features)
