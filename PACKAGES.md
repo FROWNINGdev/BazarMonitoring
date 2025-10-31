@@ -8,26 +8,26 @@
 
 ```bash
 # Pull image
-docker pull ghcr.io/frowningdev/bazarmonitoring/backend:latest
+docker pull ghcr.io/frowningdev/bazarmonitoring-backend:latest
 
 # Или конкретная версия
-docker pull ghcr.io/frowningdev/bazarmonitoring/backend:v1.0.0
+docker pull ghcr.io/frowningdev/bazarmonitoring-backend:v1.0.0
 
 # Использование
-docker run -p 5000:5000 ghcr.io/frowningdev/bazarmonitoring/backend:latest
+docker run -p 5000:5000 ghcr.io/frowningdev/bazarmonitoring-backend:latest
 ```
 
 ### Frontend Image
 
 ```bash
 # Pull image
-docker pull ghcr.io/frowningdev/bazarmonitoring/frontend:latest
+docker pull ghcr.io/frowningdev/bazarmonitoring-frontend:latest
 
 # Или конкретная версия
-docker pull ghcr.io/frowningdev/bazarmonitoring/frontend:v1.0.0
+docker pull ghcr.io/frowningdev/bazarmonitoring-frontend:v1.0.0
 
 # Использование
-docker run -p 80:80 ghcr.io/frowningdev/bazarmonitoring/frontend:latest
+docker run -p 80:80 ghcr.io/frowningdev/bazarmonitoring-frontend:latest
 ```
 
 ### Использование с docker-compose
@@ -37,14 +37,14 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/frowningdev/bazarmonitoring/backend:latest
+    image: ghcr.io/frowningdev/bazarmonitoring-backend:latest
     ports:
       - "5000:5000"
     environment:
       - SQLALCHEMY_DATABASE_URI=sqlite:///instance/bazar_monitoring.db
 
   frontend:
-    image: ghcr.io/frowningdev/bazarmonitoring/frontend:latest
+    image: ghcr.io/frowningdev/bazarmonitoring-frontend:latest
     ports:
       - "80:80"
     depends_on:

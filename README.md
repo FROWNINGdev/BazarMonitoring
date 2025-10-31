@@ -215,10 +215,10 @@ curl -X POST http://localhost:5000/api/services \
 
 ```bash
 # Backend
-docker pull ghcr.io/frowningdev/bazarmonitoring/backend:latest
+docker pull ghcr.io/frowningdev/bazarmonitoring-backend:latest
 
 # Frontend
-docker pull ghcr.io/frowningdev/bazarmonitoring/frontend:latest
+docker pull ghcr.io/frowningdev/bazarmonitoring-frontend:latest
 ```
 
 ## 📁 Структура проекта
