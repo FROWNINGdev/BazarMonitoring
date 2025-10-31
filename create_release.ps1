@@ -36,17 +36,17 @@ if ($GitHubToken) {
     $releaseNotes = @"
 ## 🎉 Release v$Version - BazarMonitoring
 
-### ✨ Основные функции
+### ✨ Main Features
 
-- ✅ **Мониторинг базаров** в реальном времени
-- 🗺️ **Интерактивная карта** Узбекистана с границами областей
-- 📊 **Статистика** по камерам и ROI
-- 📄 **Экспорт в Excel** с детальными отчетами
-- 🛠️ **Административная панель** для управления базарами
-- 🌍 **Многоязычность** (RU/UZ/EN)
-- 🌙 **Темная/светлая тема**
+- ✅ **Real-time bazaar monitoring**
+- 🗺️ **Interactive map** of Uzbekistan with regional boundaries
+- 📊 **Statistics** on cameras and ROI
+- 📄 **Excel export** with detailed reports
+- 🛠️ **Administrative panel** for bazaar management
+- 🌍 **Multi-language support** (RU/UZ/EN)
+- 🌙 **Dark/light theme**
 
-### 📦 Установка
+### 📦 Installation
 
 \`\`\`bash
 git clone https://github.com/$RepoOwner/$RepoName.git
@@ -54,19 +54,19 @@ cd $RepoName
 docker-compose up --build
 \`\`\`
 
-### 📚 Документация
+### 📚 Documentation
 
-Полная документация доступна в [README.md](README.md)
+Full documentation available in [README.md](README.md)
 
-### 👥 Авторы
+### 👥 Authors
 
-- **FROWNINGdev** - Основной разработчик
-- **asadullokhn** - Со-разработчик
+- **FROWNINGdev** - Lead Developer
+- **asadullokhn** - Co-Developer
 
-### 🔗 Ссылки
+### 🔗 Links
 
-- [Документация](README.md)
-- [Руководство для контрибьюторов](CONTRIBUTING.md)
+- [Documentation](README.md)
+- [Contributing Guide](CONTRIBUTING.md)
 - [Issues](https://github.com/$RepoOwner/$RepoName/issues)
 "@
 
