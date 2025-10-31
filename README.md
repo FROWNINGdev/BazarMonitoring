@@ -1,4 +1,4 @@
-# 🏪 BazarMonitoring - Система мониторинга базаров Узбекистана
+# 🏪 BazarMonitoring - Bazaar Monitoring System for Uzbekistan
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
@@ -6,174 +6,176 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Open Source](https://img.shields.io/badge/Open%20Source-Yes-success.svg)](https://opensource.org/)
 
-> Современная веб-платформа для мониторинга и управления сетью базаров по всей территории Узбекистана с интерактивной картой, статистикой и аналитикой.
+> Modern web platform for monitoring and managing a network of bazaars across Uzbekistan with interactive maps, statistics, and analytics.
 
-## 📋 Содержание
+![BazarMonitoring Preview](frontend/preview/preview.mp4)
 
-- [Особенности](#-особенности)
-- [Технологический стек](#-технологический-стек)
-- [Быстрый старт](#-быстрый-старт)
-- [Установка](#-установка)
-- [Использование](#-использование)
-- [API Документация](#-api-документация)
-- [Структура проекта](#-структура-проекта)
-- [Вклад в проект](#-вклад-в-проект)
-- [Лицензия](#-лицензия)
+## 📋 Table of Contents
 
-## ✨ Особенности
+- [Features](#-features)
+- [Technology Stack](#-technology-stack)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [API Documentation](#-api-documentation)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-### 🎯 Мониторинг и управление
-- ✅ **Реальное время мониторинга** - отслеживание статуса всех базаров онлайн/офлайн
-- ✅ **Интерактивная карта** - визуализация базаров на карте Узбекистана с границами областей
-- ✅ **Детальная статистика** - аналитика по камерам, ROI (области интереса), статусам
-- ✅ **Автоматическое логирование** - полная история изменений статусов и событий
+## ✨ Features
 
-### 📊 Аналитика и отчеты
-- 📈 **Общая статистика** - базары, камеры, доступность
-- 📊 **Статистика по областям** - разбивка данных по регионам Узбекистана
-- 📄 **Экспорт в Excel** - детальные отчеты с данными по каждому базару
-- 🎥 **Информация о камерах** - количество, статус (онлайн/офлайн), ROI
+### 🎯 Monitoring and Management
+- ✅ **Real-time monitoring** - track status of all bazaars online/offline
+- ✅ **Interactive map** - visualize bazaars on Uzbekistan map with regional boundaries
+- ✅ **Detailed statistics** - analytics on cameras, ROI (regions of interest), statuses
+- ✅ **Automatic logging** - complete history of status changes and events
 
-### 🛠️ Административные функции
-- ➕ **Добавление базаров** - простой интерфейс для добавления новых сервисов
-- ✏️ **Редактирование** - изменение данных базаров (контакты, координаты, порты)
-- 🗑️ **Удаление** - управление списком базаров
-- 📞 **Контактная информация** - хранение контактов Click и SCC
+### 📊 Analytics and Reports
+- 📈 **General statistics** - bazaars, cameras, availability
+- 📊 **Regional statistics** - data breakdown by regions of Uzbekistan
+- 📄 **Excel export** - detailed reports with data for each bazaar
+- 🎥 **Camera information** - count, status (online/offline), ROI
 
-### 🎨 Пользовательский интерфейс
-- 🌙 **Темная/светлая тема** - переключение между темами оформления
-- 🌍 **Многоязычность** - поддержка русского, узбекского и английского языков
-- 📱 **Адаптивный дизайн** - работает на всех устройствах
-- ⚡ **Быстрая работа** - оптимизированная производительность
+### 🛠️ Administrative Functions
+- ➕ **Add bazaars** - simple interface for adding new services
+- ✏️ **Edit** - modify bazaar data (contacts, coordinates, ports)
+- 🗑️ **Delete** - manage bazaar list
+- 📞 **Contact information** - store Click and SCC contacts
 
-## 🛠️ Технологический стек
+### 🎨 User Interface
+- 🌙 **Dark/light theme** - toggle between themes
+- 🌍 **Multi-language** - support for Russian, Uzbek, and English
+- 📱 **Responsive design** - works on all devices
+- ⚡ **Fast performance** - optimized performance
+
+## 🛠️ Technology Stack
 
 ### Backend
-- **Python 3.11** - основной язык программирования
-- **Flask** - веб-фреймворк
-- **SQLAlchemy** - ORM для работы с базой данных
-- **Flask-Migrate** - управление миграциями БД
-- **Flask-RESTX** - REST API с Swagger документацией
-- **SQLite** - база данных
+- **Python 3.11** - main programming language
+- **Flask** - web framework
+- **SQLAlchemy** - ORM for database operations
+- **Flask-Migrate** - database migration management
+- **Flask-RESTX** - REST API with Swagger documentation
+- **SQLite** - database
 
 ### Frontend
-- **HTML5/CSS3** - разметка и стилизация
-- **JavaScript (ES6+)** - интерактивность
-- **Leaflet.js** - интерактивные карты
-- **Chart.js** - графики и диаграммы
-- **SheetJS (XLSX)** - экспорт в Excel
+- **HTML5/CSS3** - markup and styling
+- **JavaScript (ES6+)** - interactivity
+- **Leaflet.js** - interactive maps
+- **Chart.js** - charts and diagrams
+- **SheetJS (XLSX)** - Excel export
 
 ### DevOps
-- **Docker** - контейнеризация
-- **Docker Compose** - оркестрация контейнеров
-- **Nginx** - веб-сервер для фронтенда
+- **Docker** - containerization
+- **Docker Compose** - container orchestration
+- **Nginx** - web server for frontend
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Предварительные требования
+### Prerequisites
 
-- [Docker](https://www.docker.com/get-started) и [Docker Compose](https://docs.docker.com/compose/)
-- Или Python 3.11+ для локальной установки
+- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/)
+- Or Python 3.11+ for local installation
 
-### Запуск с Docker (рекомендуется)
+### Run with Docker (recommended)
 
 ```bash
-# Клонируйте репозиторий
+# Clone the repository
 git clone https://github.com/FROWNINGdev/bazarmonitoring.git
 cd bazarmonitoring
 
-# Запустите приложение
+# Run the application
 docker-compose up --build
 
-# Приложение будет доступно по адресу:
+# Application will be available at:
 # Frontend: http://localhost:80
 # Backend API: http://localhost:5000
 # API Docs: http://localhost:5000/docs/
 ```
 
-### Локальная установка
+### Local Installation
 
 ```bash
-# 1. Клонируйте репозиторий
+# 1. Clone the repository
 git clone https://github.com/FROWNINGdev/bazarmonitoring.git
 cd bazarmonitoring
 
-# 2. Установите зависимости backend
+# 2. Install backend dependencies
 cd backend
 pip install -r requirements.txt
 
-# 3. Инициализируйте базу данных
+# 3. Initialize database
 python reset_migrations.py
 
-# 4. Запустите backend
+# 4. Run backend
 python app.py
 
-# 5. В другом терминале запустите frontend
+# 5. In another terminal, run frontend
 cd frontend
 python -m http.server 8080
 ```
 
-## 📖 Установка
+## 📖 Installation
 
-### Пошаговая установка
+### Step-by-step Installation
 
-1. **Клонирование репозитория**
+1. **Clone repository**
    ```bash
    git clone https://github.com/FROWNINGdev/bazarmonitoring.git
    cd bazarmonitoring
    ```
 
-2. **Настройка переменных окружения** (опционально)
+2. **Configure environment variables** (optional)
    ```bash
-   # В backend/ создайте .env файл
+   # Create .env file in backend/
    SQLALCHEMY_DATABASE_URI=sqlite:///instance/bazar_monitoring.db
    FLASK_ENV=development
    ```
 
-3. **Сборка и запуск Docker контейнеров**
+3. **Build and run Docker containers**
    ```bash
    docker-compose up --build -d
    ```
 
-4. **Проверка работоспособности**
+4. **Verify installation**
    ```bash
-   # Проверка API
+   # Check API
    curl http://localhost:5000/api/health
    
-   # Проверка frontend
+   # Check frontend
    curl http://localhost/
    ```
 
-## 🎮 Использование
+## 🎮 Usage
 
-### Веб-интерфейс
+### Web Interface
 
-1. Откройте браузер и перейдите по адресу `http://localhost:80`
-2. Используйте фильтры для поиска базаров
-3. Кликните на базар на карте для просмотра детальной информации
-4. Используйте меню для доступа к:
-   - Общей статистике
-   - Логам системы
-   - Административной панели
+1. Open browser and navigate to `http://localhost:80`
+2. Use filters to search for bazaars
+3. Click on a bazaar on the map to view detailed information
+4. Use menu to access:
+   - General statistics
+   - System logs
+   - Administrative panel
 
-### API Использование
+### API Usage
 
 ```bash
-# Получить список всех базаров
+# Get list of all bazaars
 curl http://localhost:5000/api/bazars
 
-# Получить статистику
+# Get statistics
 curl http://localhost:5000/api/statistics
 
-# Получить логи
+# Get logs
 curl http://localhost:5000/api/logs?limit=50
 
-# Добавить новый базар
+# Add new bazaar
 curl -X POST http://localhost:5000/api/services \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Название базара",
-    "city": "Город",
+    "name": "Bazaar Name",
+    "city": "City",
     "ip": "192.168.1.100",
     "port": 80,
     "backend_port": 8200,
@@ -181,37 +183,37 @@ curl -X POST http://localhost:5000/api/services \
   }'
 ```
 
-## 📚 API Документация
+## 📚 API Documentation
 
-Полная документация API доступна через Swagger UI:
+Full API documentation is available through Swagger UI:
 - **URL**: `http://localhost:5000/docs/`
-- Интерактивное тестирование API endpoints
-- Описание всех параметров и ответов
+- Interactive API endpoint testing
+- Description of all parameters and responses
 
-### Основные Endpoints
+### Main Endpoints
 
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/api/bazars` | Получить список всех базаров |
-| GET | `/api/status` | Получить статус из БД |
-| GET | `/api/statistics` | Общая статистика |
-| GET | `/api/cameras/statistics` | Статистика камер |
-| GET | `/api/logs` | Получить логи |
-| POST | `/api/services` | Добавить новый сервис |
-| PUT | `/api/services/<id>` | Обновить сервис |
-| DELETE | `/api/services/<id>` | Удалить сервис |
+| Method | Endpoint | Description |
+|-------|----------|-------------|
+| GET | `/api/bazars` | Get list of all bazaars |
+| GET | `/api/status` | Get status from database |
+| GET | `/api/statistics` | General statistics |
+| GET | `/api/cameras/statistics` | Camera statistics |
+| GET | `/api/logs` | Get logs |
+| POST | `/api/services` | Add new service |
+| PUT | `/api/services/<id>` | Update service |
+| DELETE | `/api/services/<id>` | Delete service |
 
 ## 📦 GitHub Packages
 
-Проект автоматически публикует пакеты в GitHub Packages:
+The project automatically publishes packages to GitHub Packages:
 
-- **🐳 Docker Images** - готовые к использованию контейнеры backend и frontend
-- **📦 npm Package** - frontend компоненты для npm
-- **🐍 Python Package** - backend API для pip
+- **🐳 Docker Images** - ready-to-use backend and frontend containers
+- **📦 npm Package** - frontend components for npm
+- **🐍 Python Package** - backend API for pip
 
-Подробная инструкция по использованию: [PACKAGES.md](PACKAGES.md)
+Detailed usage instructions: [PACKAGES.md](PACKAGES.md)
 
-### Быстрая установка через Docker
+### Quick Install via Docker
 
 ```bash
 # Backend
@@ -221,76 +223,76 @@ docker pull ghcr.io/frowningdev/bazarmonitoring-backend:latest
 docker pull ghcr.io/frowningdev/bazarmonitoring-frontend:latest
 ```
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
 ```
 bazarmonitoring/
-├── backend/                 # Backend приложение
-│   ├── app.py              # Основной файл Flask приложения
-│   ├── init_db.py          # Инициализация базы данных
-│   ├── migrate.py           # Скрипт миграций
-│   ├── reset_migrations.py # Сброс миграций
+├── backend/                 # Backend application
+│   ├── app.py              # Main Flask application file
+│   ├── init_db.py          # Database initialization
+│   ├── migrate.py           # Migration script
+│   ├── reset_migrations.py # Migration reset
 │   ├── docker-entrypoint.sh # Docker entrypoint
-│   ├── requirements.txt    # Python зависимости
-│   ├── Dockerfile          # Docker образ для backend
-│   └── instance/           # SQLite база данных
+│   ├── requirements.txt    # Python dependencies
+│   ├── Dockerfile          # Docker image for backend
+│   └── instance/           # SQLite database
 │
-├── frontend/                # Frontend приложение
-│   ├── index.html          # Главная страница
-│   ├── script.js           # JavaScript логика
-│   ├── styles.css          # Стили
-│   ├── nginx.conf          # Конфигурация Nginx
-│   ├── Dockerfile          # Docker образ для frontend
-│   └── Uzb/                # GeoJSON данные для карты
+├── frontend/                # Frontend application
+│   ├── index.html          # Main page
+│   ├── script.js           # JavaScript logic
+│   ├── styles.css          # Styles
+│   ├── nginx.conf          # Nginx configuration
+│   ├── Dockerfile          # Docker image for frontend
+│   └── Uzb/                # GeoJSON data for map
 │
-├── docker-compose.yml      # Docker Compose конфигурация
-├── README.md               # Этот файл
-├── LICENSE                 # Лицензия MIT
-└── CONTRIBUTING.md         # Руководство для контрибьюторов
+├── docker-compose.yml      # Docker Compose configuration
+├── README.md               # This file
+├── LICENSE                 # MIT License
+└── CONTRIBUTING.md         # Contributor guide
 ```
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-Мы приветствуем любой вклад в проект! Пожалуйста, ознакомьтесь с [CONTRIBUTING.md](CONTRIBUTING.md) для получения подробной информации.
+We welcome any contributions to the project! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-### Как внести вклад
+### How to Contribute
 
-1. **Fork** репозитория
-2. Создайте **ветку** для вашей функции (`git checkout -b feature/AmazingFeature`)
-3. **Commit** ваши изменения (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** в ветку (`git push origin feature/AmazingFeature`)
-5. Откройте **Pull Request**
+1. **Fork** the repository
+2. Create a **branch** for your feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+5. Open a **Pull Request**
 
-### Стиль кода
+### Code Style
 
-- Python: следуйте [PEP 8](https://pep8.org/)
-- JavaScript: используйте ESLint конфигурацию
-- Коммиты: используйте понятные сообщения на русском или английском
+- Python: follow [PEP 8](https://pep8.org/)
+- JavaScript: use ESLint configuration
+- Commits: use clear messages in English
 
-## 👥 Авторы
+## 👥 Authors
 
-- **FROWNINGdev** - *Основной разработчик* - [GitHub](https://github.com/FROWNINGdev)
-- **asadullokhn** - *Со-разработчик* - [GitHub](https://github.com/asadullokhn)
+- **FROWNINGdev** - *Lead Developer* - [GitHub](https://github.com/FROWNINGdev)
+- **asadullokhn** - *Co-Developer* - [GitHub](https://github.com/asadullokhn)
 
-Смотрите также список [участников](https://github.com/FROWNINGdev/bazarmonitoring/contributors), которые внесли вклад в этот проект.
+See also the list of [contributors](https://github.com/FROWNINGdev/bazarmonitoring/contributors) who participated in this project.
 
-## 📝 Лицензия
+## 📝 License
 
-Этот проект распространяется под лицензией MIT. Смотрите файл [LICENSE](LICENSE) для подробной информации.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## 🙏 Благодарности
+## 🙏 Acknowledgments
 
-- [Leaflet.js](https://leafletjs.com/) за отличную библиотеку карт
-- [Flask](https://flask.palletsprojects.com/) за простой и мощный фреймворк
-- Сообществу open source за вдохновение и поддержку
+- [Leaflet.js](https://leafletjs.com/) for excellent mapping library
+- [Flask](https://flask.palletsprojects.com/) for simple and powerful framework
+- Open source community for inspiration and support
 
-## 📞 Контакты
+## 📞 Contact
 
 - **Email**: support@bazar-monitoring.uz
 - **Issues**: [GitHub Issues](https://github.com/FROWNINGdev/bazarmonitoring/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/FROWNINGdev/bazarmonitoring/discussions)
 
-## ⭐ Статус проекта
+## ⭐ Project Status
 
 ![GitHub stars](https://img.shields.io/github/stars/FROWNINGdev/bazarmonitoring?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/FROWNINGdev/bazarmonitoring?style=social)
@@ -299,5 +301,4 @@ bazarmonitoring/
 
 ---
 
-⭐ Если этот проект был полезен, поставьте звезду на GitHub!
-
+⭐ If this project was helpful, please give it a star on GitHub!

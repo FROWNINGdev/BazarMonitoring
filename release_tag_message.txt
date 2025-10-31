@@ -1,15 +1,15 @@
-Release v1.0.0: BazarMonitoring - Система мониторинга базаров
+Release v1.0.0: BazarMonitoring - Bazaar Monitoring System
 
-Первая стабильная версия проекта BazarMonitoring.
+First stable release of BazarMonitoring project.
 
-Основные функции:
-- Мониторинг базаров в реальном времени
-- Интерактивная карта Узбекистана
-- Статистика по камерам и ROI
-- Экспорт данных в Excel
-- Административная панель
-- Многоязычная поддержка (RU/UZ/EN)
-- Темная/светлая тема
+Main Features:
+- Real-time bazaar monitoring
+- Interactive Uzbekistan map
+- Camera and ROI statistics
+- Excel data export
+- Administrative panel
+- Multi-language support (RU/UZ/EN)
+- Dark/light theme
 
 Co-authored-by: asadullokhn <asadullokhnurullev@gmail.com>
 
