@@ -1,0 +1,65 @@
+name: Publish npm Package to GitHub Packages
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@FROWNINGdev'
+      
+      - name: Create package.json for frontend
+        run: |
+          cd frontend
+          cat > package.json << EOF
+          {
+            "name": "@frowningdev/bazarmonitoring-frontend",
+            "version": "${{ github.ref_name }}",
+            "description": "Frontend package for BazarMonitoring - System for monitoring bazaars in Uzbekistan",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/FROWNINGdev/bazarmonitoring.git"
+            },
+            "keywords": [
+              "bazar",
+              "monitoring",
+              "uzbekistan",
+              "dashboard",
+              "maps"
+            ],
+            "author": "FROWNINGdev",
+            "license": "MIT",
+            "files": [
+              "*.html",
+              "*.js",
+              "*.css",
+              "Uzb/"
+            ],
+            "publishConfig": {
+              "registry": "https://npm.pkg.github.com"
+            }
+          }
+          EOF
+      
+      - name: Publish to GitHub Packages
+        run: |
+          cd frontend
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

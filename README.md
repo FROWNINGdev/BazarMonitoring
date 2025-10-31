@@ -201,6 +201,26 @@ curl -X POST http://localhost:5000/api/services \
 | PUT | `/api/services/<id>` | Обновить сервис |
 | DELETE | `/api/services/<id>` | Удалить сервис |
 
+## 📦 GitHub Packages
+
+Проект автоматически публикует пакеты в GitHub Packages:
+
+- **🐳 Docker Images** - готовые к использованию контейнеры backend и frontend
+- **📦 npm Package** - frontend компоненты для npm
+- **🐍 Python Package** - backend API для pip
+
+Подробная инструкция по использованию: [PACKAGES.md](PACKAGES.md)
+
+### Быстрая установка через Docker
+
+```bash
+# Backend
+docker pull ghcr.io/frowningdev/bazarmonitoring/backend:latest
+
+# Frontend
+docker pull ghcr.io/frowningdev/bazarmonitoring/frontend:latest
+```
+
 ## 📁 Структура проекта
 
 ```
