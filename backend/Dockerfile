@@ -20,6 +20,13 @@ RUN chmod +x docker-entrypoint.sh
 # Устанавливаем переменную окружения для БД
 ENV SQLALCHEMY_DATABASE_URI=sqlite:////app/instance/bazar_monitoring.db
 
+# Добавляем метаданные для GitHub Container Registry
+LABEL org.opencontainers.image.source=https://github.com/FROWNINGdev/bazarmonitoring
+LABEL org.opencontainers.image.description="Backend API for BazarMonitoring - System for monitoring bazaars in Uzbekistan"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.title="BazarMonitoring Backend"
+LABEL org.opencontainers.image.vendor="FROWNINGdev"
+
 # Открываем порт
 EXPOSE 5000
 

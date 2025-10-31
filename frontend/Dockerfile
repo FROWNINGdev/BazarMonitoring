@@ -19,6 +19,13 @@ COPY preview /usr/share/nginx/html/preview/
 # Копируем GeoJSON файлы
 COPY Uzb /usr/share/nginx/html/Uzb/
 
+# Добавляем метаданные для GitHub Container Registry
+LABEL org.opencontainers.image.source=https://github.com/FROWNINGdev/bazarmonitoring
+LABEL org.opencontainers.image.description="Frontend for BazarMonitoring - System for monitoring bazaars in Uzbekistan"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.title="BazarMonitoring Frontend"
+LABEL org.opencontainers.image.vendor="FROWNINGdev"
+
 # Открываем порт
 EXPOSE 80
 

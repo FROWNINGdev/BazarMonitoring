@@ -12,6 +12,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  NAMESPACE: ${{ github.repository_owner }}
 
 jobs:
   publish-backend:
@@ -39,7 +40,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/bazarmonitoring-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -84,7 +85,7 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/bazarmonitoring-frontend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
