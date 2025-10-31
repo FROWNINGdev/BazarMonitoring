@@ -1,0 +1,69 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Get version from tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Release version: $VERSION"
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        release_name: Release ${{ steps.get_version.outputs.version }}
+        body: |
+          ## 🎉 Release ${{ steps.get_version.outputs.version }} - BazarMonitoring
+
+          ### ✨ Основные функции
+
+          - ✅ **Мониторинг базаров** в реальном времени
+          - 🗺️ **Интерактивная карта** Узбекистана с границами областей
+          - 📊 **Статистика** по камерам и ROI
+          - 📄 **Экспорт в Excel** с детальными отчетами
+          - 🛠️ **Административная панель** для управления базарами
+          - 🌍 **Многоязычность** (RU/UZ/EN)
+          - 🌙 **Темная/светлая тема**
+
+          ### 📦 Установка
+
+          ```bash
+          git clone https://github.com/FROWNINGdev/bazarmonitoring.git
+          cd bazarmonitoring
+          docker-compose up --build
+          ```
+
+          ### 📚 Документация
+
+          Полная документация доступна в [README.md](README.md)
+
+          ### 👥 Авторы
+
+          - **FROWNINGdev** - Основной разработчик
+          - **asadullokhn** - Со-разработчик
+
+          ### 🔗 Ссылки
+
+          - [Документация](README.md)
+          - [Руководство для контрибьюторов](CONTRIBUTING.md)
+          - [Issues](https://github.com/FROWNINGdev/bazarmonitoring/issues)
+        draft: false
+        prerelease: false
+

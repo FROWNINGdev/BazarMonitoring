@@ -69,6 +69,9 @@ Thumbs.db
 *.temp
 *.bak
 
+# Release temporary files (но не release_tag_message.txt - он нужен для шаблона)
+# release_temp_*.txt
+
 # Coverage reports
 htmlcov/
 .coverage
