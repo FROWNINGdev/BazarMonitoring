@@ -187,7 +187,8 @@ body::after {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 70px;
+    gap: var(--space-4);
+    height: 80px;
 }
 
 .nav-actions {
@@ -230,7 +231,7 @@ body::after {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-5);
+    padding: 0 var(--space-5);
     background: rgba(51, 65, 85, 0.6);
     border: 1px solid rgba(0, 188, 212, 0.3);
     color: var(--text-secondary);
@@ -244,6 +245,7 @@ body::after {
     overflow: hidden;
     min-width: 120px;
     justify-content: center;
+    height: 44px;
 }
 
 .nav-btn::before {
@@ -267,9 +269,9 @@ body::after {
 
 /* Light theme navigation buttons */
 [data-theme="light"] .nav-btn {
-    background: rgba(255, 255, 255, 0.8);
+    background: #ffffff;
     border: 1px solid rgba(37, 99, 235, 0.3);
-    color: var(--text-secondary);
+    color: #1e293b;
 }
 
 [data-theme="light"] .nav-btn:hover {
@@ -543,15 +545,13 @@ body::after {
     display: flex;
     gap: var(--space-4);
     align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
+    flex: 1;
+    padding: 0;
 }
 
 [data-theme="light"] .control-bar {
-    background: white;
-    border: 1px solid var(--border);
+    background: transparent;
+    border: none;
 }
 
 .search-container {
@@ -564,26 +564,35 @@ body::after {
 .search-container i {
     position: absolute;
     left: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
 .search-container input {
     width: 100%;
-    padding: var(--space-3) var(--space-4) var(--space-3) 2.75rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    height: 44px;
+    padding: 0 var(--space-5) 0 2.75rem;
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(0, 188, 212, 0.3);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     font-family: inherit;
     transition: all 0.2s;
 }
 
+[data-theme="light"] .search-container input {
+    background: #ffffff;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    color: #1e293b;
+}
+
 .search-container input:focus {
     outline: none;
-    border-color: var(--primary);
-    background: var(--bg-elevated);
+    border-color: rgba(0, 188, 212, 0.5);
+    background: rgba(0, 188, 212, 0.15);
 }
 
 .search-container input::placeholder {
@@ -598,32 +607,43 @@ body::after {
 .filter-item {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: 0;
 }
 
 .filter-item label {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    display: none; /* прячем заголовок, чтобы он не ломал высоту кнопки */
 }
 
 .filter-item select {
-    padding: var(--space-2) var(--space-4);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    height: 44px;
+    padding: 0 var(--space-5);
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(0, 188, 212, 0.3);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     font-family: inherit;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
     min-width: 150px;
+}
+
+[data-theme="light"] .filter-item select {
+    background: #ffffff;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    color: #1e293b;
+}
+
+/* Стиль выпадающего списка у селекта (где это поддерживается браузером) */
+.filter-item select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .filter-item select option {
+    background-color: #ffffff;
+    color: var(--text-primary);
 }
 
 .filter-item select:hover {
@@ -1725,13 +1745,6 @@ body::after {
     background: var(--bg-secondary);
 }
 
-.sidebar-header h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
 .sidebar-close {
     width: 32px;
     height: 32px;
@@ -2414,6 +2427,58 @@ body.sidebar-collapsed .dashboard {
 .btn-open:hover {
     background: var(--primary-dark);
     border-color: var(--primary-dark);
+}
+
+.btn-export {
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: var(--card-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-export:active {
+    transform: translateY(1px);
+}
+
+.telegram-notification-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.telegram-notification-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.telegram-notification-toggle i {
+    font-size: 1.25rem;
+    transition: color 0.2s;
+}
+
+.telegram-notification-toggle input[type="checkbox"]:checked + i {
+    color: #0088cc !important;
+}
+
+.telegram-notification-toggle:hover i {
+    opacity: 0.8;
 }
 
 /* ===============================================

@@ -3,24 +3,32 @@
 
 set -e
 
-echo "Starting Bazar Monitoring Backend..."
+echo "🚀 Запуск Bazar Monitoring Backend..."
+
+# Создаем директорию для базы данных если её нет
+echo "📁 Проверка директории для базы данных..."
+mkdir -p /app/instance
+chmod 755 /app/instance
 
 # Ожидание готовности базы данных (если используется внешняя БД)
-echo "Checking database availability..."
+echo "⏳ Проверка доступности базы данных..."
 sleep 2
 
 # Сброс миграций и создание базы данных
-echo "Resetting migration system..."
+echo "🔄 Выполнение миграций базы данных..."
 python reset_migrations.py
 
 # Проверка успешности сброса
 if [ $? -eq 0 ]; then
-    echo "SUCCESS: Migration system reset completed"
+    echo "✅ SUCCESS: Migration system reset completed"
 else
-    echo "WARNING: Possible issues with migration reset"
+    echo "⚠️ WARNING: Possible issues with migration reset"
+    # Пытаемся создать таблицы напрямую как fallback
+    echo "🔄 Attempting fallback: creating tables directly..."
+    python -c "from app import app, db; app.app_context().push(); db.create_all(); print('✅ Tables created via fallback')"
 fi
 
 # Запуск основного приложения
-echo "Starting Flask application..."
+echo "🚀 Starting Flask application..."
 exec python app.py
 

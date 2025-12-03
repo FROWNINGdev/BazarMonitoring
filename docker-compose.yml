@@ -10,6 +10,9 @@ services:
     volumes:
       # Монтируем volume для сохранения БД
       - bazar-db:/app/instance
+      # Монтируем код для разработки (hot reload)
+      - ./backend:/app
+    entrypoint: ["sh", "-c", "chmod +x /app/docker-entrypoint.sh && /app/docker-entrypoint.sh"]
     environment:
       - SQLALCHEMY_DATABASE_URI=sqlite:////app/instance/bazar_monitoring.db
       - FLASK_ENV=production

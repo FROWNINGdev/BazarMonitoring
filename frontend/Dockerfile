@@ -12,7 +12,6 @@ COPY index.html /usr/share/nginx/html/
 COPY script.js /usr/share/nginx/html/
 COPY styles.css /usr/share/nginx/html/
 COPY favicon.png /usr/share/nginx/html/
-COPY fon.jpg /usr/share/nginx/html/
 # Добавлено: превью видео
 COPY preview /usr/share/nginx/html/preview/
 
