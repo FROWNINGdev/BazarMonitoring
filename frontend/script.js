@@ -229,18 +229,10 @@ async function exportToExcel() {
                 isUzbek ? 'Nom' : 'Название',
                 isUzbek ? 'Shahar' : 'Город',
                 isUzbek ? 'Status' : 'Статус',
-                isUzbek ? 'Click kontakt' : 'Контакт Click',
-                isUzbek ? 'SCC kontakt' : 'Контакт SCC',
-                isUzbek ? 'Kenglik' : 'Широта',
-                isUzbek ? 'Uzunlik' : 'Долгота',
                 isUzbek ? 'Jami kameralar' : 'Всего камер',
                 isUzbek ? 'Onlayn kameralar' : 'Онлайн камер',
                 isUzbek ? 'Oflayn kameralar' : 'Офлайн камер',
-                isUzbek ? 'Kameralar ROI bilan' : 'Камеры с ROI',
-                isUzbek ? 'Jami ROI' : 'Всего ROI',
-                isUzbek ? 'RASTA ROI' : 'RASTA ROI',
-                isUzbek ? 'FOOD ROI' : 'FOOD ROI',
-                isUzbek ? 'ANIMAL ROI' : 'ANIMAL ROI'
+                isUzbek ? 'Kameralar ROI bilan' : 'Камеры с ROI'
             ]
         ];
 
@@ -264,18 +256,10 @@ async function exportToExcel() {
                         bazar.name || '',
                         bazar.city || '',
                         bazar.status === 'online' ? (isUzbek ? 'Onlayn' : 'Онлайн') : (isUzbek ? 'Oflayn' : 'Оффлайн'),
-                        bazar.contact_click || '',
-                        bazar.contact_scc || '',
-                        bazar.latitude || '',
-                        bazar.longitude || '',
                         detailedCameraStats.totalCameras || 0,
                         detailedCameraStats.onlineCameras || 0,
                         detailedCameraStats.offlineCameras || 0,
-                        detailedCameraStats.camerasWithROI || 0,
-                        detailedCameraStats.totalROIs || 0,
-                        detailedCameraStats.roiTypes?.rasta || 0,
-                        detailedCameraStats.roiTypes?.food || 0,
-                        detailedCameraStats.roiTypes?.animal || 0
+                        detailedCameraStats.camerasWithROI || 0
                     ]);
                 } else {
                     // Если не удалось получить детальную статистику, добавляем базовые данные
@@ -284,17 +268,65 @@ async function exportToExcel() {
                         bazar.name || '',
                         bazar.city || '',
                         bazar.status === 'online' ? (isUzbek ? 'Onlayn' : 'Онлайн') : (isUzbek ? 'Oflayn' : 'Оффлайн'),
-                        bazar.contact_click || '',
-                        bazar.contact_scc || '',
-                        bazar.latitude || '',
-                        bazar.longitude || '',
-                        0, 0, 0, 0, 0, 0, 0, 0 // Нули для статистики камер и ROI
+                        0,
+                        0,
+                        0,
+                        0
                     ]);
                 }
             });
         }
 
         const ws2 = XLSX.utils.aoa_to_sheet(detailedData);
+
+        // Styling function
+        const applyHeaderStyle = (ws) => {
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const address = XLSX.utils.encode_cell({ r: 0, c: C });
+                if (!ws[address]) continue;
+                ws[address].s = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "4F81BD" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: {
+                        top: { style: "thin", color: { auto: 1 } },
+                        bottom: { style: "thin", color: { auto: 1 } },
+                        left: { style: "thin", color: { auto: 1 } },
+                        right: { style: "thin", color: { auto: 1 } }
+                    }
+                };
+            }
+        };
+
+        const applyCellStyle = (ws) => {
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[address]) continue;
+                    ws[address].s = {
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { auto: 1 } },
+                            bottom: { style: "thin", color: { auto: 1 } },
+                            left: { style: "thin", color: { auto: 1 } },
+                            right: { style: "thin", color: { auto: 1 } }
+                        }
+                    };
+                }
+            }
+        };
+
+        // Apply styles
+        applyHeaderStyle(ws1);
+        applyCellStyle(ws1);
+        ws1['!cols'] = [{ wch: 30 }, { wch: 15 }];
+
+        applyHeaderStyle(ws2);
+        applyCellStyle(ws2);
+        ws2['!cols'] = [{ wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+
         XLSX.utils.book_append_sheet(wb, ws2, isUzbek ? 'Bozorlar statistika' : 'Статистика базаров');
 
         // Лист 3: Статистика по областям
@@ -326,6 +358,10 @@ async function exportToExcel() {
         }
 
         const ws3 = XLSX.utils.aoa_to_sheet(regionsData);
+        applyHeaderStyle(ws3);
+        applyCellStyle(ws3);
+        ws3['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+
         XLSX.utils.book_append_sheet(wb, ws3, isUzbek ? 'Viloyatlar statistika' : 'Статистика областей');
 
         // Генерируем имя файла с текущей датой и языком
@@ -392,7 +428,7 @@ function updateClock() {
     const day = now.getDate();
     const monthIndex = now.getMonth();
     const year = now.getFullYear();
-    
+
     // Проверяем, доступны ли translations и getMonthName
     let monthName;
     if (typeof getMonthName === 'function' && typeof translations !== 'undefined') {
@@ -406,7 +442,7 @@ function updateClock() {
         // Если переводы еще не загружены, используем стандартный формат
         monthName = now.toLocaleDateString('ru-RU', { month: 'long' });
     }
-    
+
     let dateStr;
     if (typeof currentLang !== 'undefined' && currentLang === 'uz') {
         dateStr = `${day} ${monthName} ${year} y.`;
@@ -504,6 +540,7 @@ const translations = {
             search: 'Поиск по названию или городу...',
             filterByCity: 'Фильтр по регионам',
             filterByStatus: 'Фильтр по статусу',
+            all: 'Все',
             allLocations: 'Фильтр по регионам',
             allStatuses: 'Фильтр по статусу',
             showMap: 'Показать карту',
@@ -557,7 +594,19 @@ const translations = {
             peopleCounting: 'Подсчет людей',
             location: 'Локация',
             status: 'Статус',
-            totalServices: 'Всего сервисов'
+            totalServices: 'Всего сервисов',
+            systemHealth: 'Здоровье системы',
+            uptime: 'Доступность',
+            online: 'Онлайн',
+            offline: 'Оффлайн',
+            table: {
+                name: 'Название',
+                region: 'Регион',
+                status: 'Статус',
+                cameras: 'Камеры (Вкл/Всего)',
+                roi: 'ROI',
+                actions: 'Действия'
+            }
         },
         modal: {
             addService: {
@@ -789,6 +838,7 @@ const translations = {
             search: 'Nom yoki shahar bo\'yicha qidirish...',
             filterByCity: 'Hudud bo\'yicha filtr',
             filterByStatus: 'Status bo\'yicha filtr',
+            all: 'Jami',
             allLocations: 'Hudud bo\'yicha filtr',
             allStatuses: 'Status bo\'yicha filtr',
             showMap: 'Xaritani ko\'rsatish',
@@ -842,7 +892,19 @@ const translations = {
             peopleCounting: 'Odamlar soni',
             location: 'Joylashuv',
             status: 'Status',
-            totalServices: 'Jami xizmatlar'
+            totalServices: 'Jami xizmatlar',
+            systemHealth: 'Tizim salomatligi',
+            uptime: 'Mavjudlik',
+            online: 'Onlayn',
+            offline: 'Oflayn',
+            table: {
+                name: 'Nom',
+                region: 'Viloyat',
+                status: 'Status',
+                cameras: 'Kameralar (Yoq/Jami)',
+                roi: 'ROI',
+                actions: 'Amallar'
+            }
         },
         modal: {
             addService: {
@@ -1074,6 +1136,7 @@ const translations = {
             search: 'Search by name or city...',
             filterByCity: 'Filter by region',
             filterByStatus: 'Filter by status',
+            all: 'All',
             allLocations: 'Filter by region',
             allStatuses: 'Filter by status',
             showMap: 'Show Map',
@@ -1127,7 +1190,19 @@ const translations = {
             peopleCounting: 'People Counting',
             location: 'Location',
             status: 'Status',
-            totalServices: 'Total Services'
+            totalServices: 'Total Services',
+            systemHealth: 'System Health',
+            uptime: 'Uptime',
+            online: 'Online',
+            offline: 'Offline',
+            table: {
+                name: 'Name',
+                region: 'Region',
+                status: 'Status',
+                cameras: 'Cameras (On/Total)',
+                roi: 'ROI',
+                actions: 'Actions'
+            }
         },
         modal: {
             addService: {
@@ -1348,10 +1423,24 @@ function updateLanguage() {
     // Обновляем фильтр городов с переводами
     if (elements.cityFilter && bazarsData.length > 0) {
         const selectedValue = elements.cityFilter.value;
+        // Восстанавливаем оригинальные тексты перед обновлением
+        restoreFilterOptions(elements.cityFilter);
         populateCityFilter();
         // Восстанавливаем выбранное значение
         if (selectedValue) {
             elements.cityFilter.value = selectedValue;
+        } else {
+            // Если ничего не выбрано, устанавливаем "all" с названием фильтра
+            elements.cityFilter.value = 'all';
+        }
+    }
+
+    // Обновляем statusFilter с переводом названия
+    if (elements.statusFilter) {
+        restoreFilterOptions(elements.statusFilter);
+        const allOption = elements.statusFilter.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = t('dashboard.filterByStatus');
         }
     }
 
@@ -1393,20 +1482,20 @@ function updateLanguage() {
     if (bazarsData.length > 0) {
         populateCityFilter();
     }
-    
+
     // Обновляем тексты в модальном окне редактирования, если оно открыто
     const editServiceModal = document.getElementById('editServiceModal');
     if (editServiceModal && editServiceModal.classList.contains('active')) {
         updateEditServiceModalText();
     }
-    
+
     // Обновляем тексты в модальном окне Telegram, если оно открыто
     const telegramModal = document.getElementById('telegramChatIdsModal');
     if (telegramModal && telegramModal.classList.contains('active')) {
         updateTelegramModalTexts();
         loadTelegramChatIds();
     }
-    
+
     // Обновляем тексты в модальном окне карты (всегда, так как оно может быть скрыто)
     const mapModal = document.getElementById('mapModal');
     if (mapModal) {
@@ -1431,17 +1520,17 @@ function updateLanguage() {
             }
         });
     }
-    
+
     // Обновляем календарь (месяц и дни недели)
     if (typeof updateCalendarDisplay === 'function') {
         updateCalendarDisplay();
     }
-    
+
     // Перерисовываем карточки базаров, чтобы обновить переводы
     if (bazarsData.length > 0) {
         renderBazars();
     }
-    
+
     // Обновляем раздел статистики, если он открыт
     const generalStatsModal = document.getElementById('generalStatsModal');
     if (generalStatsModal) {
@@ -1460,7 +1549,7 @@ function updateLanguage() {
                 element.textContent = translation;
             }
         });
-        
+
         // Перезагружаем статистику для обновления переводов названий областей и городов
         if (generalStatsModal.classList.contains('active')) {
             if (typeof loadGeneralStatistics === 'function') {
@@ -2140,11 +2229,11 @@ function translateCity(cityName) {
     if (!cityName || cityName === 'Unknown') {
         return currentLang === 'uz' ? 'Noma\'lum' : currentLang === 'en' ? 'Unknown' : 'Неизвестно';
     }
-    
+
     // Определяем тип: город (shahri/shahar) или область (viloyati/viloyat)
     const isCity = /\bshahri\b/gi.test(cityName) || /\bshahar\b/gi.test(cityName);
     const isRegion = /\bviloyati\b/gi.test(cityName) || /\bviloyat\b/gi.test(cityName);
-    
+
     // Словарь для перевода названий городов
     const cityTranslations = {
         ru: {
@@ -2180,14 +2269,14 @@ function translateCity(cityName) {
             'Каракалпакстан': 'Qoraqalpog\'iston'
         }
     };
-    
+
     // Убираем shahri/shahar/viloyati/viloyat для поиска базового названия
     let baseName = cityName.replace(/\s*shahri\s*/gi, ' ').replace(/\s*shahar\s*/gi, ' ')
-                          .replace(/\s*viloyati\s*/gi, ' ').replace(/\s*viloyat\s*/gi, ' ').trim();
-    
+        .replace(/\s*viloyati\s*/gi, ' ').replace(/\s*viloyat\s*/gi, ' ').trim();
+
     let translatedName = baseName;
     const translations = cityTranslations[currentLang];
-    
+
     // Применяем базовые переводы названий городов
     if (translations) {
         // Сначала проверяем точное совпадение
@@ -2203,7 +2292,7 @@ function translateCity(cityName) {
             }
         }
     }
-    
+
     // Форматируем названия: shahri/shahar -> "г. Название", viloyati/viloyat -> "Название область"
     if (currentLang === 'ru') {
         if (isCity) {
@@ -2271,14 +2360,16 @@ function translateCity(cityName) {
             }
         }
     }
-    
+
     return translatedName;
 }
 
 function populateCityFilter() {
     const cities = [...new Set(bazarsData.map(b => b.city || 'Unknown'))].sort();
+    const filterName = t('dashboard.filterByCity');
 
-    elements.cityFilter.innerHTML = `<option value="all" data-i18n="dashboard.allLocations">${t('dashboard.allLocations')}</option>`;
+    // Опция "all" показывает название фильтра
+    elements.cityFilter.innerHTML = `<option value="all" data-i18n="dashboard.filterByCity" selected>${filterName}</option>`;
     cities.forEach(city => {
         const option = document.createElement('option');
         option.value = city;
@@ -2396,12 +2487,133 @@ if (elements.searchInput) {
     elements.searchInput.addEventListener('input', applyFilters);
 }
 
+// Функция для возврата названия фильтра после выбора
+function resetFilterDisplay(selectElement) {
+    const filterNameKey = selectElement.getAttribute('data-filter-name');
+    if (!filterNameKey) return;
+
+    const selectedValue = selectElement.value;
+    const filterName = t(filterNameKey);
+
+    // Сохраняем выбранное значение в data-атрибут
+    selectElement.setAttribute('data-selected-value', selectedValue);
+
+    // Если выбрано "all", показываем название фильтра сразу
+    if (selectedValue === 'all') {
+        const allOption = selectElement.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = filterName;
+        }
+        return;
+    }
+
+    // Через 2.5 секунды заменяем текст на название фильтра
+    setTimeout(() => {
+        // Находим выбранную опцию
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        if (selectedOption && selectedValue !== 'all') {
+            // Сохраняем оригинальный текст
+            selectedOption.setAttribute('data-original-text', selectedOption.textContent);
+            // Временно меняем текст на название фильтра
+            selectedOption.textContent = filterName;
+        }
+    }, 2500);
+}
+
+// Функция для восстановления оригинального текста при открытии select
+function restoreFilterOptions(selectElement) {
+    const filterNameKey = selectElement.getAttribute('data-filter-name');
+    const filterName = filterNameKey ? t(filterNameKey) : '';
+
+    Array.from(selectElement.options).forEach(option => {
+        const originalText = option.getAttribute('data-original-text');
+        if (originalText) {
+            option.textContent = originalText;
+            option.removeAttribute('data-original-text');
+        }
+
+        // Если это опция "all" и она выбрана, показываем название фильтра
+        if (option.value === 'all' && selectElement.value === 'all' && filterName) {
+            option.textContent = filterName;
+        } else if (option.value === 'all' && selectElement.value !== 'all' && filterName) {
+            // Если "all" не выбрана, показываем "Все" (Jami)
+            option.textContent = t('dashboard.all');
+        }
+    });
+}
+
 if (elements.cityFilter) {
-    elements.cityFilter.addEventListener('change', applyFilters);
+    elements.cityFilter.addEventListener('change', function () {
+        const filterName = t('dashboard.filterByCity');
+        const allOption = this.options[0];
+
+        // Если выбрано "all", показываем название фильтра
+        if (this.value === 'all' && allOption) {
+            allOption.textContent = filterName;
+        } else if (allOption) {
+            // Иначе показываем "Все" (Jami)
+            allOption.textContent = t('dashboard.all');
+        }
+
+        restoreFilterOptions(this);
+        applyFilters();
+        resetFilterDisplay(this);
+    });
+
+    elements.cityFilter.addEventListener('focus', function () {
+        // При открытии показываем "Все" (Jami) в опции "all"
+        const allOption = this.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = t('dashboard.all');
+        }
+        restoreFilterOptions(this);
+    });
+
+    elements.cityFilter.addEventListener('mousedown', function () {
+        // При открытии показываем "Все" (Jami) в опции "all"
+        const allOption = this.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = t('dashboard.all');
+        }
+        restoreFilterOptions(this);
+    });
 }
 
 if (elements.statusFilter) {
-    elements.statusFilter.addEventListener('change', applyFilters);
+    elements.statusFilter.addEventListener('change', function () {
+        const filterName = t('dashboard.filterByStatus');
+        const allOption = this.options[0];
+
+        // Если выбрано "all", показываем название фильтра
+        if (this.value === 'all' && allOption) {
+            allOption.textContent = filterName;
+        } else if (allOption) {
+            // Иначе показываем "Все" (Jami)
+            allOption.textContent = t('dashboard.all');
+        }
+
+        restoreFilterOptions(this);
+        applyFilters();
+        resetFilterDisplay(this);
+    });
+
+    elements.statusFilter.addEventListener('focus', function () {
+        // При открытии показываем "Все" (Jami) в опции "all"
+        const allOption = this.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = t('dashboard.all');
+        }
+        restoreFilterOptions(this);
+    });
+
+    elements.statusFilter.addEventListener('mousedown', function () {
+        // При открытии показываем "Все" (Jami) в опции "all"
+        const allOption = this.options[0];
+        if (allOption && allOption.value === 'all') {
+            allOption.textContent = t('dashboard.all');
+        }
+        restoreFilterOptions(this);
+    });
 }
 
 // Refresh button
@@ -2976,7 +3188,7 @@ async function showRegionStatistics(regionName, latlng) {
             // Область Ташкент - исключаем ToshkentShahri
             const match = (normalizedCity.includes('tashkent') || normalizedCity.includes('toshkent')) &&
                 normalizedCity !== 'toshkentshahri' && !normalizedCity.includes('shahri');
-            if (match) { 
+            if (match) {
                 console.log(`Базар ${bazar.name} подходит для области Toshkent (city: ${bazarCity})`);
             }
             return match;
@@ -3309,17 +3521,43 @@ async function loadGeneralStatistics() {
 }
 
 function updateGeneralStatisticsDisplay(data) {
-    // Update overview statistics
-    document.getElementById('totalBazarsStats').textContent = data.totalBazars || 0;
-    document.getElementById('onlineBazarsStats').textContent = data.accessibleBazars || 0;
-    document.getElementById('offlineBazarsStats').textContent = (data.totalBazars || 0) - (data.accessibleBazars || 0);
+    const totalBazars = data.totalBazars || 0;
+    const onlineBazars = data.accessibleBazars || 0;
+    const offlineBazars = totalBazars - onlineBazars;
 
-    // Update cameras statistics
-    document.getElementById('totalCamerasStats').textContent = data.totalCameras || 0;
-    document.getElementById('onlineCamerasStats').textContent = data.onlineCameras || 0;
-    document.getElementById('offlineCamerasStats').textContent = data.offlineCameras || 0;
+    const totalCameras = data.totalCameras || 0;
+    const onlineCameras = data.onlineCameras || 0;
+    const offlineCameras = data.offlineCameras || 0;
 
-    // Update regions statistics
+    // 1. Update System Health (Hero Card)
+    const healthPercentage = totalBazars > 0 ? Math.round((onlineBazars / totalBazars) * 100) : 0;
+
+    const healthValueEl = document.getElementById('systemHealthValue');
+    const healthChartEl = document.getElementById('systemHealthChart');
+
+    if (healthValueEl) healthValueEl.textContent = `${healthPercentage}%`;
+    if (healthChartEl) {
+        healthChartEl.style.background = `conic-gradient(var(--primary) ${healthPercentage * 3.6}deg, var(--bg-tertiary) 0deg)`;
+    }
+
+    const heroOnlineEl = document.getElementById('heroOnlineCount');
+    const heroOfflineEl = document.getElementById('heroOfflineCount');
+
+    if (heroOnlineEl) heroOnlineEl.textContent = onlineBazars;
+    if (heroOfflineEl) heroOfflineEl.textContent = offlineBazars;
+
+    // 2. Update Key Metrics Grid
+    const totalBazarsEl = document.getElementById('totalBazarsStats');
+    const offlineBazarsEl = document.getElementById('offlineBazarsStats');
+    const totalCamerasEl = document.getElementById('totalCamerasStats');
+    const offlineCamerasEl = document.getElementById('offlineCamerasStats');
+
+    if (totalBazarsEl) totalBazarsEl.textContent = totalBazars;
+    if (offlineBazarsEl) offlineBazarsEl.textContent = offlineBazars;
+    if (totalCamerasEl) totalCamerasEl.textContent = totalCameras;
+    if (offlineCamerasEl) offlineCamerasEl.textContent = offlineCameras;
+
+    // 3. Update regions statistics
     updateRegionsStatistics(data.regionsStats || {});
 }
 
@@ -3332,168 +3570,112 @@ async function loadDetailedBazarsStatistics() {
 
     console.log('Loading detailed statistics for bazars:', bazarsData.length);
 
-    // Показываем индикатор загрузки
+    // Show loading state in table
     statsDetailedList.innerHTML = `
-        <div class="loading-state">
-            <div class="modern-loader">
-                <div class="loader-ring"></div>
-                <div class="loader-ring"></div>
-                <div class="loader-ring"></div>
-                <div class="loader-core"></div>
-            </div>
-            <div class="loading-info">
-                <p class="loading-title">${t('dashboard.loadingDetailedStatistics')}</p>
-                <p class="loading-subtitle">${t('dashboard.fetchingCameraData')}</p>
-            </div>
-        </div>
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+                <div class="modern-loader" style="margin: 0 auto;">
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring"></div>
+                    <div class="loader-core"></div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-secondary);">${t('dashboard.loadingDetailedStatistics')}</p>
+            </td>
+        </tr>
     `;
 
     let detailedListHtml = '';
 
-    // Обрабатываем базары параллельно для ускорения
+    // Process bazars in parallel
     const bazarPromises = bazarsData.map(async (bazar) => {
         const statusClass = bazar.status === 'online' ? 'online' : 'offline';
-        const statusText = bazar.status === 'online' ? t('statistics.onlineBazars') : t('statistics.offlineBazars');
+        const statusText = bazar.status === 'online' ? t('dashboard.online') : t('dashboard.offline');
 
-        // Получаем детальную статистику по камерам и ROI
+        // Get detailed camera stats
         const detailedCameraStats = await getDetailedCameraStatsForBazaar(bazar);
-
-        // Получаем базовую статистику камер (для совместимости)
-        let basicCameraStats = null;
-        if (bazar.status === 'online' && bazar.endpoint) {
-            try {
-                const cameraApiUrl = `http://${bazar.endpoint.ip}:${bazar.endpoint.backendPort}/api/cameras/statistics`;
-                const response = await fetch(cameraApiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    mode: 'cors'
-                });
-
-                if (response.ok) {
-                    basicCameraStats = await response.json();
-                }
-            } catch (error) {
-                console.warn(`Failed to fetch basic camera stats for ${bazar.name}:`, error);
-            }
-        }
 
         return {
             bazar,
             statusClass,
             statusText,
-            detailedCameraStats,
-            basicCameraStats
+            detailedCameraStats
         };
     });
 
     const bazarResults = await Promise.allSettled(bazarPromises);
 
-    // Генерируем HTML для каждого базара
+    // Generate HTML for table rows
     bazarResults.forEach(result => {
         if (result.status === 'fulfilled') {
-            const { bazar, statusClass, statusText, detailedCameraStats, basicCameraStats } = result.value;
+            const { bazar, statusClass, statusText, detailedCameraStats } = result.value;
+            const city = translateCity(bazar.city || 'Unknown');
+            const totalCameras = detailedCameraStats.totalCameras || 0;
+            const onlineCameras = detailedCameraStats.onlineCameras || 0;
+            const roiCount = detailedCameraStats.totalROIs || 0;
 
             detailedListHtml += `
-                <div class="stats-detailed-item">
-                    <div class="stats-detailed-header">
-                        <div class="stats-detailed-name">${bazar.name || 'Unknown'}</div>
-                        <div class="stats-detailed-status ${statusClass}">${statusText}</div>
-                    </div>
-                    <div class="stats-detailed-info">
-                    <div class="stats-detailed-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${translateCity(bazar.city || 'Unknown')}</span>
-                    </div>
-                        <div class="stats-detailed-endpoint">
-                            <i class="fas fa-server"></i>
-                            <span>${bazar.endpoint ? `${bazar.endpoint.ip}:${bazar.endpoint.port || bazar.endpoint.backendPort}` : 'N/A'}</span>
-                        </div>
-                    </div>
-                    ${detailedCameraStats.totalCameras > 0 ? `
-                    <div class="stats-detailed-cameras">
-                        <div class="stats-cameras-stats">
-                            <div class="stats-camera-stat">
-                                <span class="stat-number">${detailedCameraStats.totalCameras}</span>
-                                <span class="stat-label">${t('statistics.totalCameras')}</span>
-                            </div>
-                            <div class="stats-camera-stat online">
-                                <span class="stat-number">${detailedCameraStats.onlineCameras}</span>
-                                <span class="stat-label">${t('statistics.workingCameras')}</span>
-                            </div>
-                            <div class="stats-camera-stat offline">
-                                <span class="stat-number">${detailedCameraStats.offlineCameras}</span>
-                                <span class="stat-label">${t('statistics.notWorkingCameras')}</span>
-                            </div>
-                        </div>
-                        <div class="stats-roi-stats">
-                            <div class="stats-roi-header">
-                                <i class="fas fa-crosshairs"></i>
-                                <span>${t('statistics.roiStatistics')}</span>
-                            </div>
-                            <div class="stats-roi-details">
-                                <div class="stats-roi-stat">
-                                    <span class="stat-number">${detailedCameraStats.camerasWithROI}</span>
-                                    <span class="stat-label">${t('statistics.camerasWithROI')}</span>
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">${bazar.name || 'Unknown'}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">${bazar.endpoint ? `${bazar.endpoint.ip}:${bazar.endpoint.port}` : 'N/A'}</div>
+                    </td>
+                    <td>${city}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}">
+                            <span class="dot"></span>
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 600; color: var(--text-primary);">${onlineCameras}</span>
+                            <span style="color: var(--text-muted);">/ ${totalCameras}</span>
+                            ${totalCameras > 0 ? `
+                                <div style="width: 60px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: ${(onlineCameras / totalCameras) * 100}%; height: 100%; background: ${onlineCameras === totalCameras ? 'var(--success)' : 'var(--warning)'};"></div>
                                 </div>
-                                <div class="stats-roi-stat">
-                                    <span class="stat-number">${detailedCameraStats.totalROIs}</span>
-                                    <span class="stat-label">${t('statistics.totalROI')}</span>
-                                </div>
-                            </div>
-                            ${detailedCameraStats.totalROIs > 0 ? `
-                            <div class="stats-roi-types">
-                                ${detailedCameraStats.roiTypes.rasta > 0 ? `<span class="roi-type-badge rasta"><i class="fas fa-utensils"></i> ${t('statistics.rasta')}: ${detailedCameraStats.roiTypes.rasta}</span>` : ''}
-                                ${detailedCameraStats.roiTypes.food > 0 ? `<span class="roi-type-badge food"><i class="fas fa-hamburger"></i> ${t('statistics.food')}: ${detailedCameraStats.roiTypes.food}</span>` : ''}
-                                ${detailedCameraStats.roiTypes.animal > 0 ? `<span class="roi-type-badge animal"><i class="fas fa-paw"></i> ANIMAL: ${detailedCameraStats.roiTypes.animal}</span>` : ''}
-                            </div>
                             ` : ''}
                         </div>
-                        ${basicCameraStats && (basicCameraStats.rastaFoodCameras > 0 || basicCameraStats.peopleCountingCameras > 0 || basicCameraStats.animalCameras > 0 || basicCameraStats.vehicleCountingCameras > 0) ? `
-                        <div class="stats-camera-types">
-                            ${basicCameraStats.rastaFoodCameras > 0 ? `<span class="camera-type-badge rasta-food"><i class="fas fa-utensils"></i> ${basicCameraStats.rastaFoodCameras}</span>` : ''}
-                            ${basicCameraStats.peopleCountingCameras > 0 ? `<span class="camera-type-badge people-counting"><i class="fas fa-users"></i> ${basicCameraStats.peopleCountingCameras}</span>` : ''}
-                            ${basicCameraStats.animalCameras > 0 ? `<span class="camera-type-badge animals"><i class="fas fa-paw"></i> ${basicCameraStats.animalCameras}</span>` : ''}
-                            ${basicCameraStats.vehicleCountingCameras > 0 ? `<span class="camera-type-badge vehicles"><i class="fas fa-car"></i> ${basicCameraStats.vehicleCountingCameras}</span>` : ''}
-                        </div>
-                        ` : ''}
-                    </div>
-                    ` : `
-                    <div class="stats-detailed-cameras">
-                        <div class="stats-cameras-unavailable">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>${t('cameras.unavailable')}</span>
-                        </div>
-                    </div>
-                    `}
-                </div>
+                    </td>
+                    <td>
+                        ${roiCount > 0 ? `
+                            <span style="color: var(--text-primary); font-weight: 500;">${roiCount}</span>
+                        ` : '<span style="color: var(--text-muted);">-</span>'}
+                    </td>
+                    <td>
+                        <button class="btn-icon" onclick="accessBozor('${bazar.endpoint?.ip}', ${bazar.endpoint?.port})" title="${t('cameras.accessBozor')}">
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
-        } else {
-            console.error('Error processing bazar:', result.reason);
         }
     });
 
-    console.log('Generated detailed HTML:', detailedListHtml.length, 'characters');
     statsDetailedList.innerHTML = detailedListHtml;
 
     if (detailedListHtml === '') {
-        console.warn('No detailed statistics generated - bazarsData might be empty');
         statsDetailedList.innerHTML = `
-            <div class="stats-detailed-item">
-                <div class="stats-detailed-header">
-                    <div class="stats-detailed-name">Нет данных</div>
-                    <div class="stats-detailed-status offline">Оффлайн</div>
-                </div>
-                <div class="stats-detailed-info">
-                    <div class="stats-detailed-location">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Данные о базарах не загружены</span>
-                    </div>
-                </div>
-            </div>
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">
+                    ${t('dashboard.noBazarsFound')}
+                </td>
+            </tr>
         `;
+    }
+
+    // Initialize search functionality for the table
+    const searchInput = document.getElementById('detailedSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = statsDetailedList.querySelectorAll('tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
     }
 }
 
@@ -3503,49 +3685,55 @@ function updateRegionsStatistics(regionsStats) {
 
     console.log('Updating regions statistics with data:', regionsStats);
 
-    // Сохраняем данные для экспорта
+    // Save data for export
     currentRegionsStats = regionsStats;
 
     let regionsHtml = '';
 
-    // Сортируем области по количеству базаров
+    // Sort regions by total bazars
     const sortedRegions = Object.entries(regionsStats).sort((a, b) => b[1].totalBazars - a[1].totalBazars);
+    let rank = 1;
 
     for (const [regionName, stats] of sortedRegions) {
-        console.log(`Processing region ${regionName}:`, stats);
         const translatedRegionName = translateCity(regionName);
+        const total = stats.totalBazars || 0;
+        const online = stats.onlineBazars || 0;
+        const health = total > 0 ? Math.round((online / total) * 100) : 0;
+
+        // SVG Circle calculations (r=16)
+        const circumference = 2 * Math.PI * 16;
+        const offset = circumference - (health / 100) * circumference;
+        const colorVar = health >= 90 ? 'var(--success)' : health >= 50 ? 'var(--warning)' : 'var(--danger)';
+
         regionsHtml += `
-            <div class="stats-region-item">
-                <div class="stats-region-header">
-                    <div class="stats-region-name">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>${translatedRegionName}</span>
+            <div class="stats-region-row">
+                <div class="region-info">
+                    <div class="region-rank">#${rank++}</div>
+                    <div class="region-name">${translatedRegionName}</div>
+                </div>
+                <div class="region-metrics">
+                    <div class="region-metric">
+                        <span class="label">${t('statistics.totalBazars')}</span>
+                        <span class="value">${total}</span>
+                    </div>
+                    <div class="region-metric">
+                        <span class="label">${t('statistics.onlineBazars')}</span>
+                        <span class="value success">${online}</span>
+                    </div>
+                    <div class="region-metric">
+                        <span class="label">${t('statistics.totalCameras')}</span>
+                        <span class="value">${stats.totalCameras || 0}</span>
                     </div>
                 </div>
-                <div class="stats-region-stats">
-                    <div class="stats-region-stat bazars">
-                        <div class="stat-number">${stats.totalBazars}</div>
-                        <div class="stat-label">${t('statistics.bazarsInRegion')}</div>
-                    </div>
-                    <div class="stats-region-stat online-bazars">
-                        <div class="stat-number">${stats.onlineBazars || 0}</div>
-                        <div class="stat-label">${t('statistics.onlineBazars')}</div>
-                    </div>
-                    <div class="stats-region-stat offline-bazars">
-                        <div class="stat-number">${stats.offlineBazars || 0}</div>
-                        <div class="stat-label">${t('statistics.offlineBazars')}</div>
-                    </div>
-                    <div class="stats-region-stat cameras">
-                        <div class="stat-number">${stats.totalCameras}</div>
-                        <div class="stat-label">${t('statistics.camerasInRegion')}</div>
-                    </div>
-                    <div class="stats-region-stat online-cameras">
-                        <div class="stat-number">${stats.onlineCameras || 0}</div>
-                        <div class="stat-label">${t('statistics.workingCameras')}</div>
-                    </div>
-                    <div class="stats-region-stat offline-cameras">
-                        <div class="stat-number">${stats.offlineCameras || 0}</div>
-                        <div class="stat-label">${t('statistics.notWorkingCameras')}</div>
+                <div class="region-progress-container">
+                    <div class="region-mini-chart">
+                        <svg viewBox="0 0 36 36">
+                            <circle class="bg" cx="18" cy="18" r="16"></circle>
+                            <circle class="progress" cx="18" cy="18" r="16" 
+                                style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset}; stroke: ${colorVar}">
+                            </circle>
+                        </svg>
+                        <div class="text">${health}%</div>
                     </div>
                 </div>
             </div>
@@ -3554,13 +3742,9 @@ function updateRegionsStatistics(regionsStats) {
 
     if (regionsHtml === '') {
         regionsHtml = `
-            <div class="stats-region-item">
-                <div class="stats-region-header">
-                    <div class="stats-region-name">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Нет данных</span>
-                    </div>
-                </div>
+            <div class="stats-region-row" style="justify-content: center; color: var(--text-muted);">
+                <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                <span>${t('dashboard.noBazarsFound')}</span>
             </div>
         `;
     }
@@ -4090,53 +4274,53 @@ function updateEditServiceModalText() {
     if (serviceNameLabel) serviceNameLabel.textContent = t('modal.editService.serviceName');
     const serviceNameInput = document.getElementById('editServiceName');
     if (serviceNameInput) serviceNameInput.placeholder = t('modal.editService.serviceNamePlaceholder');
-    
+
     const serviceCityLabel = document.querySelector('label[for="editServiceCity"]');
     if (serviceCityLabel) serviceCityLabel.textContent = t('modal.editService.city');
     const serviceCityInput = document.getElementById('editServiceCity');
     if (serviceCityInput) serviceCityInput.placeholder = t('modal.editService.cityPlaceholder');
-    
+
     const serviceIpLabel = document.querySelector('label[for="editServiceIp"]');
     if (serviceIpLabel) serviceIpLabel.textContent = t('modal.editService.ipAddress');
-    
+
     const servicePortLabel = document.querySelector('label[for="editServicePort"]');
     if (servicePortLabel) servicePortLabel.textContent = t('modal.editService.frontendPort');
-    
+
     const serviceBackendPortLabel = document.querySelector('label[for="editServiceBackendPort"]');
     if (serviceBackendPortLabel) serviceBackendPortLabel.textContent = t('modal.editService.backendPort');
-    
+
     const servicePgPortLabel = document.querySelector('label[for="editServicePgPort"]');
     if (servicePgPortLabel) servicePgPortLabel.textContent = t('modal.editService.pgPort');
-    
+
     const serviceStreamPortLabel = document.querySelector('label[for="editServiceStreamPort"]');
     if (serviceStreamPortLabel) serviceStreamPortLabel.textContent = t('modal.editService.streamPort');
 
     // Обновляем метки полей - Дополнительно
     const contactInfoTitle = document.querySelectorAll('#editServiceModal .form-section-title h4')[0];
     if (contactInfoTitle) contactInfoTitle.textContent = t('modal.editService.contactInfo');
-    
+
     const contactClickNameLabel = document.querySelector('label[for="editServiceContactClickName"]');
     if (contactClickNameLabel) contactClickNameLabel.textContent = t('modal.editService.contactClickName');
     const contactClickNameInput = document.getElementById('editServiceContactClickName');
     if (contactClickNameInput) contactClickNameInput.placeholder = t('modal.editService.contactClickNamePlaceholder');
-    
+
     const contactClickLabel = document.querySelector('label[for="editServiceContactClick"]');
     if (contactClickLabel) contactClickLabel.textContent = t('modal.editService.contactClick');
-    
+
     const contactSccNameLabel = document.querySelector('label[for="editServiceContactSccName"]');
     if (contactSccNameLabel) contactSccNameLabel.textContent = t('modal.editService.contactSccName');
     const contactSccNameInput = document.getElementById('editServiceContactSccName');
     if (contactSccNameInput) contactSccNameInput.placeholder = t('modal.editService.contactSccNamePlaceholder');
-    
+
     const contactSccLabel = document.querySelector('label[for="editServiceContactScc"]');
     if (contactSccLabel) contactSccLabel.textContent = t('modal.editService.contactScc');
-    
+
     const mapCoordinatesTitle = document.querySelectorAll('#editServiceModal .form-section-title h4')[1];
     if (mapCoordinatesTitle) mapCoordinatesTitle.textContent = t('modal.editService.mapCoordinates');
-    
+
     const latitudeLabel = document.querySelector('label[for="editServiceLatitude"]');
     if (latitudeLabel) latitudeLabel.textContent = t('modal.editService.latitude');
-    
+
     const longitudeLabel = document.querySelector('label[for="editServiceLongitude"]');
     if (longitudeLabel) longitudeLabel.textContent = t('modal.editService.longitude');
 
@@ -4253,7 +4437,7 @@ async function openEditServiceModal(ip, port) {
     try {
         // Обновляем переводы перед открытием
         updateEditServiceModalText();
-        
+
         // Загружаем данные из API /status
         const response = await fetch(`${API_BASE_URL}/status`);
         const result = await response.json();
@@ -4776,7 +4960,7 @@ function selectChatType(type) {
     if (hiddenInput) {
         hiddenInput.value = type;
     }
-    
+
     // Обновляем визуальное состояние кнопок
     const typeOptions = document.querySelectorAll('.type-option');
     typeOptions.forEach(btn => {
@@ -4801,7 +4985,7 @@ function updateTelegramModalTexts() {
     // Обновляем все тексты в модальном окне Telegram
     const modal = document.getElementById('telegramChatIdsModal');
     if (!modal) return;
-    
+
     // Обновляем тексты кнопок типа
     const typeOptions = document.querySelectorAll('.type-option span[data-i18n]');
     typeOptions.forEach(span => {
@@ -4818,28 +5002,49 @@ function closeTelegramChatIdsModal() {
     }
 }
 
+// Кэш для списка областей
+let cachedRegions = null;
+let regionsCacheTime = 0;
+const REGIONS_CACHE_TTL = 60000; // 1 минута
+
 async function loadTelegramChatIds() {
     try {
-        const response = await fetch(`${API_BASE_URL}/telegram/chat-ids`);
-        const result = await response.json();
-
         const listContainer = document.getElementById('chatIdsList');
         if (!listContainer) return;
 
+        // Показываем индикатор загрузки
+        listContainer.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>
+                <span style="color: var(--text-muted);">${t('dashboard.loading') || 'Загрузка...'}</span>
+            </div>
+        `;
+
+        // Загружаем chat IDs и области параллельно
+        const [chatIdsResponse, regionsResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/telegram/chat-ids`),
+            (Date.now() - regionsCacheTime > REGIONS_CACHE_TTL || !cachedRegions)
+                ? fetch(`${API_BASE_URL}/bazars`).then(r => r.json())
+                : Promise.resolve({ success: true, data: cachedRegions })
+        ]);
+
+        const result = await chatIdsResponse.json();
+        const regionsResult = regionsResponse;
+
+        // Обновляем кэш областей
+        if (regionsResult.success && regionsResult.data) {
+            const regionsSet = new Set();
+            regionsResult.data.forEach(bazar => {
+                if (bazar.city) {
+                    regionsSet.add(bazar.city);
+                }
+            });
+            cachedRegions = Array.from(regionsSet).sort();
+            regionsCacheTime = Date.now();
+        }
+
         if (result.success && result.data && result.data.length > 0) {
-            // Получаем список всех областей из базаров
-            const regionsResponse = await fetch(`${API_BASE_URL}/bazars`);
-            const regionsResult = await regionsResponse.json();
-            const allRegions = [];
-            if (regionsResult.success && regionsResult.data) {
-                const regionsSet = new Set();
-                regionsResult.data.forEach(bazar => {
-                    if (bazar.city) {
-                        regionsSet.add(bazar.city);
-                    }
-                });
-                allRegions.push(...Array.from(regionsSet).sort());
-            }
+            const allRegions = cachedRegions || [];
 
             listContainer.innerHTML = result.data.map(chat => {
                 const allowedRegions = chat.allowed_regions || [];
@@ -4848,9 +5053,9 @@ async function loadTelegramChatIds() {
                 const regionsText = allowedRegions.length > 0
                     ? `${t('modal.telegram.regionsLabel')}: ${translatedRegions.join(', ')}`
                     : t('modal.telegram.allRegions');
-                const chatTypeText = chat.chat_type === 'channel' ? t('modal.telegram.typeChannel') : 
-                                    chat.chat_type === 'group' ? t('modal.telegram.typeGroup') : 
-                                    t('modal.telegram.typeUser');
+                const chatTypeText = chat.chat_type === 'channel' ? t('modal.telegram.typeChannel') :
+                    chat.chat_type === 'group' ? t('modal.telegram.typeGroup') :
+                        t('modal.telegram.typeUser');
                 return `
                 <div class="chat-id-item" style="padding: 1rem; background: var(--surface-color); border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
@@ -5038,48 +5243,67 @@ async function editChatIdRegions(chatIdId, currentRegions) {
     const modal = document.getElementById('editChatIdRegionsModal');
     if (!modal) return;
 
-    // Загружаем список областей
-    const regions = await loadRegionsForChatId();
-    const checkboxesContainer = document.getElementById('editRegionsCheckboxes');
+    // Открываем модальное окно сразу для мгновенной реакции
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
-    if (regions.length === 0) {
-        checkboxesContainer.innerHTML = `<p style="color: var(--text-muted);">${t('modal.telegram.noRegions')}</p>`;
-    } else {
-        const regionsArray = Array.isArray(currentRegions) ? currentRegions : (currentRegions ? [currentRegions] : []);
-        // Загружаем оригинальные названия областей для сравнения
+    const checkboxesContainer = document.getElementById('editRegionsCheckboxes');
+    if (!checkboxesContainer) return;
+
+    // Показываем индикатор загрузки
+    checkboxesContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>
+            <span style="color: var(--text-muted);">${t('dashboard.loading') || 'Загрузка...'}</span>
+        </div>
+    `;
+
+    try {
+        // Делаем один запрос к API и переиспользуем данные
         const response = await fetch(`${API_BASE_URL}/bazars`);
         const result = await response.json();
+
+        const regionsSet = new Set();
         const originalRegionsMap = new Map();
+
         if (result.success && result.data) {
             result.data.forEach(bazar => {
                 if (bazar.city) {
                     const translatedName = translateCity(bazar.city);
+                    regionsSet.add(translatedName);
                     originalRegionsMap.set(translatedName, bazar.city);
                 }
             });
         }
-        
-        checkboxesContainer.innerHTML = regions.map(region => {
-            const originalRegion = originalRegionsMap.get(region) || region;
-            const isChecked = regionsArray.some(r => {
-                // Сравниваем как с оригинальным, так и с переведенным названием
-                return r === originalRegion || r === region || 
-                       (r === 'Toshkent shahri' && (originalRegion === 'Toshkent shahri' || originalRegion === 'ToshkentShahri')) ||
-                       (r === 'ToshkentShahri' && (originalRegion === 'Toshkent shahri' || originalRegion === 'ToshkentShahri'));
-            });
-            return `
-            <label style="display: flex; align-items: center; padding: 0.5rem; cursor: pointer; border-radius: 4px; transition: background 0.2s;" 
-                   onmouseover="this.style.background='var(--hover-color)'" onmouseout="this.style.background='transparent'">
-                <input type="checkbox" value="${originalRegion}" ${isChecked ? 'checked' : ''} 
-                       style="margin-right: 0.75rem; cursor: pointer;">
-                <span style="font-size: 0.875rem;">${region}</span>
-            </label>
-        `;
-        }).join('');
-    }
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+        const regions = Array.from(regionsSet).sort();
+        const regionsArray = Array.isArray(currentRegions) ? currentRegions : (currentRegions ? [currentRegions] : []);
+
+        if (regions.length === 0) {
+            checkboxesContainer.innerHTML = `<p style="color: var(--text-muted);">${t('modal.telegram.noRegions')}</p>`;
+        } else {
+            checkboxesContainer.innerHTML = regions.map(region => {
+                const originalRegion = originalRegionsMap.get(region) || region;
+                const isChecked = regionsArray.some(r => {
+                    // Сравниваем как с оригинальным, так и с переведенным названием
+                    return r === originalRegion || r === region ||
+                        (r === 'Toshkent shahri' && (originalRegion === 'Toshkent shahri' || originalRegion === 'ToshkentShahri')) ||
+                        (r === 'ToshkentShahri' && (originalRegion === 'Toshkent shahri' || originalRegion === 'ToshkentShahri'));
+                });
+                return `
+                <label style="display: flex; align-items: center; padding: 0.5rem; cursor: pointer; border-radius: 4px; transition: background 0.2s;" 
+                       onmouseover="this.style.background='var(--hover-color)'" onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" value="${originalRegion}" ${isChecked ? 'checked' : ''} 
+                           style="margin-right: 0.75rem; cursor: pointer;">
+                    <span style="font-size: 0.875rem;">${region}</span>
+                </label>
+            `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Error loading regions:', error);
+        checkboxesContainer.innerHTML = `<p style="color: var(--error);">${t('modal.telegram.errorLoading') || 'Ошибка загрузки'}</p>`;
+    }
 }
 
 function closeEditRegionsModal() {
@@ -5255,16 +5479,16 @@ function initPreview() {
     const endPreview = () => {
         if (previewEnded) return; // Предотвращаем множественные вызовы
         previewEnded = true;
-        
-        try { 
-            video.pause(); 
+
+        try {
+            video.pause();
             video.currentTime = 0;
             video.src = '';
             video.load();
-        } catch (e) { 
+        } catch (e) {
             console.error('Error stopping video:', e);
         }
-        
+
         overlay.classList.add('hidden');
         setTimeout(() => {
             try {
@@ -5337,3 +5561,31 @@ console.log('=== Application initialization complete ===');
 
 // Optional: Auto-refresh every 60 seconds
 // setInterval(loadAllBazars, 60000);
+
+// ===============================================
+// Stats Modal Tabs
+// ===============================================
+
+function switchStatsTab(tabId) {
+    // Hide all tab contents
+    document.querySelectorAll('.stats-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Deactivate all tab buttons
+    document.querySelectorAll('.stats-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab content
+    const selectedContent = document.getElementById(`tab-${tabId}`);
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+    }
+
+    // Activate selected tab button
+    const selectedBtn = document.querySelector(`.stats-tab-btn[data-tab="${tabId}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
+}

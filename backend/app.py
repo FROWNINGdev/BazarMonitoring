@@ -184,11 +184,12 @@ class TelegramSettings(db.Model):
 class TelegramChatId(db.Model):
     """Chat ID для отправки уведомлений (множественные)"""
     id = db.Column(db.Integer, primary_key=True)
-    chat_id = db.Column(db.String(100), nullable=False)  # Может быть числовым ID, @channel, @username
+    chat_id = db.Column(db.String(100), nullable=False)  # Только числовой ID (например: -1001234567890 или 123456789)
     chat_type = db.Column(db.String(20), default='channel')  # channel, group, user
     description = db.Column(db.String(200))  # Описание (например, "Основной канал", "Личные уведомления")
     allowed_regions = db.Column(db.Text)  # JSON список разрешенных областей (если None - все области)
     enabled = db.Column(db.Boolean, default=True)
+    last_message_id = db.Column(db.Integer, nullable=True)  # ID последнего отправленного сообщения для удаления
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -362,12 +363,79 @@ def log_admin_action(service, action_type, details=None):
     db.session.add(log)
     db.session.commit()
 
-def send_telegram_message(bot_token, chat_id, message, reply_markup=None):
-    """Отправить сообщение в Telegram. Возвращает (success: bool, error: str или None)"""
+def delete_telegram_message(bot_token, chat_id, message_id):
+    """Удалить сообщение в Telegram. Возвращает (success: bool, error: str или None)"""
     try:
+        url = f"https://api.telegram.org/bot{bot_token}/deleteMessage"
+        params = {
+            'chat_id': str(chat_id),
+            'message_id': int(message_id)
+        }
+        
+        response = requests.post(url, json=params, timeout=10)
+        
+        if response.ok:
+            result = response.json()
+            if result.get('ok'):
+                logger.debug(f"Successfully deleted message {message_id} from chat_id {chat_id}")
+                return True, None
+            else:
+                error_desc = result.get('description', 'Unknown error')
+                error_code = result.get('error_code', 'N/A')
+                error_msg = f"[{error_code}] {error_desc}"
+                # Если сообщение уже не найдено, это нормальная ситуация (не логируем как ошибку)
+                if 'not found' in error_desc.lower() or 'message to delete not found' in error_desc.lower():
+                    logger.debug(f"Message {message_id} from chat_id {chat_id} already deleted or not found (this is normal)")
+                    return True, None  # Возвращаем success, так как цель достигнута (сообщения нет)
+                logger.warning(f"Failed to delete message {message_id} from chat_id {chat_id}: {error_msg}")
+                return False, error_msg
+        else:
+            try:
+                error_data = response.json()
+                error_desc = error_data.get('description', response.text)
+                error_code = error_data.get('error_code', response.status_code)
+                error_msg = f"HTTP {response.status_code}, [{error_code}] {error_desc}"
+                # Если сообщение уже не найдено, это нормальная ситуация (не логируем как ошибку)
+                if 'not found' in error_desc.lower() or 'message to delete not found' in error_desc.lower():
+                    logger.debug(f"Message {message_id} from chat_id {chat_id} already deleted or not found (this is normal)")
+                    return True, None  # Возвращаем success, так как цель достигнута (сообщения нет)
+                logger.warning(f"Failed to delete message {message_id} from chat_id {chat_id}: {error_msg}")
+            except:
+                error_msg = f"HTTP {response.status_code} - {response.text}"
+                logger.warning(f"Failed to delete message {message_id} from chat_id {chat_id}: {error_msg}")
+            return False, error_msg
+    except Exception as e:
+        logger.error(f"Exception while deleting Telegram message: {e}")
+        return False, str(e)
+
+def normalize_chat_id(chat_id):
+    """Нормализует chat_id для Telegram API (только числовые ID)"""
+    if not chat_id:
+        return chat_id
+    
+    chat_id_str = str(chat_id).strip()
+    
+    # Проверяем, что это числовой ID (начинается с минуса или только цифры)
+    if not (chat_id_str.startswith('-') or chat_id_str.lstrip('-').isdigit()):
+        # Это не числовой ID - возвращаем None или пустую строку
+        return None
+    
+    # Это числовой ID - возвращаем как есть
+    return chat_id_str
+
+def send_telegram_message(bot_token, chat_id, message, reply_markup=None):
+    """Отправить сообщение в Telegram. Возвращает (success: bool, message_id: int или None, error: str или None)"""
+    try:
+        # Нормализуем chat_id (только числовые ID)
+        normalized_chat_id = normalize_chat_id(chat_id)
+        if not normalized_chat_id:
+            error_msg = f"Некорректный chat_id: {chat_id}. Поддерживаются только числовые ID"
+            logger.error(error_msg)
+            return False, None, error_msg
+        
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         params = {
-            'chat_id': str(chat_id),  # Убеждаемся, что chat_id - строка
+            'chat_id': normalized_chat_id,  # Используем нормализованный числовой chat_id
             'text': message,
             'parse_mode': 'Markdown',
             'disable_web_page_preview': True
@@ -375,14 +443,15 @@ def send_telegram_message(bot_token, chat_id, message, reply_markup=None):
         if reply_markup:
             params['reply_markup'] = reply_markup
         
-        logger.debug(f"Sending Telegram message to chat_id={chat_id} (type: {type(chat_id)}), URL: {url}")
+        logger.debug(f"Sending Telegram message to chat_id={normalized_chat_id} (original: {chat_id}, type: {type(chat_id)}), URL: {url}")
         response = requests.post(url, json=params, timeout=10)
         
         if response.ok:
             result = response.json()
             if result.get('ok'):
-                logger.debug(f"Telegram API response OK for chat_id {chat_id}")
-                return True, None
+                message_id = result.get('result', {}).get('message_id')
+                logger.debug(f"Telegram API response OK for chat_id {normalized_chat_id}, message_id: {message_id}")
+                return True, message_id, None
             else:
                 error_desc = result.get('description', 'Unknown error')
                 error_code = result.get('error_code', 'N/A')
@@ -390,11 +459,11 @@ def send_telegram_message(bot_token, chat_id, message, reply_markup=None):
                 migrate_to_chat_id = result.get('parameters', {}).get('migrate_to_chat_id')
                 if migrate_to_chat_id:
                     error_msg = f"[{error_code}] {error_desc}. Новый chat ID: {migrate_to_chat_id}"
-                    logger.warning(f"Group migrated to supergroup. Old chat_id: {chat_id}, New chat_id: {migrate_to_chat_id}")
+                    logger.warning(f"Group migrated to supergroup. Old chat_id: {normalized_chat_id}, New chat_id: {migrate_to_chat_id}")
                 else:
                     error_msg = f"[{error_code}] {error_desc}"
-                logger.error(f"Telegram API returned ok=false for chat_id {chat_id}: {error_msg}")
-                return False, error_msg
+                    logger.error(f"Telegram API returned ok=false for chat_id {normalized_chat_id}: {error_msg}")
+                return False, None, error_msg
         else:
             try:
                 error_data = response.json()
@@ -404,14 +473,14 @@ def send_telegram_message(bot_token, chat_id, message, reply_markup=None):
                 migrate_to_chat_id = error_data.get('parameters', {}).get('migrate_to_chat_id')
                 if migrate_to_chat_id:
                     error_msg = f"HTTP {response.status_code}, [{error_code}] {error_desc}. Новый chat ID: {migrate_to_chat_id}"
-                    logger.warning(f"Group migrated to supergroup. Old chat_id: {chat_id}, New chat_id: {migrate_to_chat_id}")
+                    logger.warning(f"Group migrated to supergroup. Old chat_id: {normalized_chat_id}, New chat_id: {migrate_to_chat_id}")
                 else:
                     error_msg = f"HTTP {response.status_code}, [{error_code}] {error_desc}"
-                logger.error(f"Telegram API HTTP error for chat_id {chat_id}: {error_msg}")
+                    logger.error(f"Telegram API HTTP error for chat_id {normalized_chat_id}: {error_msg}")
             except:
                 error_msg = f"HTTP {response.status_code} - {response.text}"
                 logger.error(f"Telegram API HTTP error for chat_id {chat_id}: {error_msg}")
-            return False, error_msg
+            return False, None, error_msg
     except requests.exceptions.Timeout:
         error_msg = "Timeout при отправке сообщения"
         logger.error(f"Timeout sending Telegram message to {chat_id}")
@@ -526,6 +595,8 @@ def normalize_region_name(region_name):
         'ташкент вилояти': 'toshkentviloyati',
         # Другие регионы (можно расширить)
         'fargona': 'fargona',
+        "farg'ona": 'fargona',
+        'farg`ona': 'fargona',
         'fergana': 'fargona',
         'фергана': 'fargona',
         'namangan': 'namangan',
@@ -536,17 +607,23 @@ def normalize_region_name(region_name):
         'сурхандарья': 'surxondaryo',
     }
     
-    # Проверяем точное совпадение
+    # Убираем апострофы и другие спецсимволы для нормализации
+    region_lower_clean = region_lower.replace("'", "").replace("`", "").replace("'", "").replace("'", "")
+    
+    # Проверяем точное совпадение (сначала оригинальный, потом очищенный)
     if region_lower in region_mapping:
         return region_mapping[region_lower]
+    if region_lower_clean in region_mapping:
+        return region_mapping[region_lower_clean]
     
     # Проверяем частичное совпадение (например, "Toshkent shahri" содержит "toshkent")
     for key, normalized in region_mapping.items():
-        if key in region_lower or region_lower in key:
+        key_clean = key.replace("'", "").replace("`", "").replace("'", "").replace("'", "")
+        if key in region_lower or region_lower in key or key_clean in region_lower_clean or region_lower_clean in key_clean:
             return normalized
     
-    # Если не нашли, возвращаем нормализованную версию (убираем пробелы, спецсимволы)
-    normalized = region_lower.replace(' ', '').replace('.', '').replace('г', '').replace('область', 'viloyati').replace('вилояти', 'viloyati')
+    # Если не нашли, возвращаем нормализованную версию (убираем пробелы, спецсимволы, апострофы)
+    normalized = region_lower_clean.replace(' ', '').replace('.', '').replace('г', '').replace('область', 'viloyati').replace('вилояти', 'viloyati')
     return normalized
 
 def send_telegram_notification(bazar_name, city, offline_cameras_count, total_cameras, notification_type='offline', service=None, next_notification_in=None):
@@ -579,7 +656,7 @@ def send_telegram_notification(bazar_name, city, offline_cameras_count, total_ca
         app.logger.info(f"DEBUG: Sending notification for bazar '{bazar_name}' in region '{bazar_region}' (normalized: '{bazar_region_normalized}')")
         
         # Получаем список всех активных chat ID из БД с проверкой фильтрации по областям
-        chat_ids = []
+        chat_ids_dict = {}  # Используем словарь для дедупликации по chat_id
         telegram_chats = TelegramChatId.query.filter_by(enabled=True).all()
         app.logger.info(f"DEBUG: Found {len(telegram_chats)} enabled chat IDs in database")
         
@@ -588,31 +665,39 @@ def send_telegram_notification(bazar_name, city, offline_cameras_count, total_ca
             allowed_regions = chat.get_allowed_regions()
             app.logger.info(f"DEBUG: Chat ID {chat.chat_id} (type: {chat.chat_type}) - allowed_regions: {allowed_regions}, bazar_region: {bazar_region}")
             
+            should_add = False
             if allowed_regions is None:
                 # Если None - разрешены все области
                 app.logger.info(f"DEBUG: Chat ID {chat.chat_id} - разрешены все области, добавляем")
-                chat_ids.append((chat.chat_id, chat))
+                should_add = True
             elif bazar_region_normalized:
                 # Нормализуем все разрешенные регионы и сравниваем
                 allowed_regions_normalized = [normalize_region_name(r) for r in allowed_regions if r]
                 if bazar_region_normalized in allowed_regions_normalized:
                     app.logger.info(f"DEBUG: Chat ID {chat.chat_id} - область '{bazar_region}' (normalized: '{bazar_region_normalized}') в списке разрешенных, добавляем")
-                    chat_ids.append((chat.chat_id, chat))
+                    should_add = True
                 else:
                     app.logger.info(f"DEBUG: Chat ID {chat.chat_id} - область '{bazar_region}' (normalized: '{bazar_region_normalized}') НЕ в списке разрешенных {allowed_regions_normalized}, пропускаем")
             elif not bazar_region:
                 # Если область не указана, отправляем всем
                 app.logger.info(f"DEBUG: Chat ID {chat.chat_id} - область не указана, добавляем")
-                chat_ids.append((chat.chat_id, chat))
+                should_add = True
             else:
                 app.logger.info(f"DEBUG: Chat ID {chat.chat_id} - область '{bazar_region}' НЕ в списке разрешенных, пропускаем")
+            
+            # Добавляем в словарь для дедупликации (если chat_id уже есть, перезаписываем)
+            if should_add:
+                chat_ids_dict[str(chat.chat_id)] = (chat.chat_id, chat)
+        
+        # Преобразуем словарь в список
+        chat_ids = list(chat_ids_dict.values())
         
         if not chat_ids:
             app.logger.error(f"ERROR: No Telegram chat IDs configured or no matching regions for bazar '{bazar_name}' in region '{bazar_region}'")
             app.logger.error(f"ERROR: Total enabled chats: {len(telegram_chats)}")
             return False
         
-        app.logger.info(f"DEBUG: Will send notification to {len(chat_ids)} chat ID(s)")
+        app.logger.info(f"DEBUG: Will send notification to {len(chat_ids)} unique chat ID(s)")
         
         # Формируем сообщение в зависимости от типа уведомления
         if notification_type == 'offline':
@@ -643,7 +728,7 @@ def send_telegram_notification(bazar_name, city, offline_cameras_count, total_ca
             message += f"🕐 *Время:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
             message += "\n⏰ *Повторное уведомление будет только при изменении статуса камер*"
         
-        # Отправляем уведомление во все настроенные chat ID
+        # Отправляем уведомление во все настроенные chat ID (уже дедуплицированные)
         success_count = 0
         failed_chats = []
         for chat_id_tuple in chat_ids:
@@ -651,15 +736,40 @@ def send_telegram_notification(bazar_name, city, offline_cameras_count, total_ca
             chat_obj = chat_id_tuple[1] if isinstance(chat_id_tuple, tuple) and len(chat_id_tuple) > 1 else None
             chat_type = chat_obj.chat_type if chat_obj else 'unknown'
             
-            success, error_detail = send_telegram_message(bot_token, chat_id, message)
-            if success:
+            # Пропускаем некорректные chat_id (только числовые ID поддерживаются)
+            if not normalize_chat_id(chat_id):
+                app.logger.debug(f"Skipping notification to invalid chat_id {chat_id} - only numeric IDs are supported")
+                continue
+            
+            # Удаляем предыдущее сообщение, если оно есть
+            if chat_obj and chat_obj.last_message_id:
+                try:
+                    delete_success, delete_error = delete_telegram_message(bot_token, chat_id, chat_obj.last_message_id)
+                    if delete_success:
+                        app.logger.debug(f"Deleted previous message {chat_obj.last_message_id} from chat_id {chat_id}")
+                    else:
+                        app.logger.debug(f"Could not delete previous message {chat_obj.last_message_id} from chat_id {chat_id}: {delete_error}")
+                except Exception as e:
+                    app.logger.warning(f"Error deleting previous message from chat_id {chat_id}: {e}")
+            
+            # Отправляем новое сообщение
+            success, message_id, error_detail = send_telegram_message(bot_token, chat_id, message)
+            if success and message_id:
                 success_count += 1
-                app.logger.info(f"Successfully sent notification to chat_id {chat_id} (type: {chat_type})")
+                # Сохраняем ID нового сообщения в базу данных
+                if chat_obj:
+                    try:
+                        chat_obj.last_message_id = message_id
+                        db.session.commit()
+                        app.logger.debug(f"Saved message_id {message_id} for chat_id {chat_id}")
+                    except Exception as e:
+                        app.logger.warning(f"Error saving message_id for chat_id {chat_id}: {e}")
+                app.logger.info(f"Successfully sent notification to chat_id {chat_id} (type: {chat_type}), message_id: {message_id}")
             else:
                 failed_chats.append((chat_id, chat_type, error_detail))
                 app.logger.warning(f"Failed to send notification to chat_id {chat_id} (type: {chat_type}): {error_detail}")
                 # Если это пользователь и ошибка о том, что бот не может инициировать диалог
-                if chat_type == 'user' and error_detail and ('can\'t initiate conversation' in error_detail.lower() or 'forbidden' in error_detail.lower()):
+                if chat_type == 'user' and error_detail and ('can\'t initiate conversation' in error_detail.lower() or 'forbidden' in error_detail.lower() or 'chat not found' in error_detail.lower()):
                     app.logger.warning(f"User {chat_id} needs to start the bot first by sending /start command")
         
         if failed_chats:
@@ -675,6 +785,11 @@ def send_current_status_to_chat_id(chat_id_obj):
     """Отправить текущее состояние всех базаров с включенными уведомлениями в указанный chat ID"""
     try:
         app.logger.info(f"Sending current status to new chat ID: {chat_id_obj.chat_id} (type: {chat_id_obj.chat_type})")
+        
+        # Проверяем, что это числовой ID
+        if not normalize_chat_id(chat_id_obj.chat_id):
+            app.logger.warning(f"Skipping send_current_status for invalid chat_id {chat_id_obj.chat_id} - only numeric IDs are supported")
+            return
         
         # Получаем все сервисы с включенными уведомлениями
         services = BazarStatus.query.filter_by(telegram_notifications_enabled=True).all()
@@ -752,8 +867,19 @@ def send_current_status_to_chat_id(chat_id_obj):
                             check_interval = service.notification_check_interval or 3600
                             next_notification_in = check_interval
                         
+                        # Удаляем предыдущее сообщение для этого базара, если оно есть
+                        # Для send_current_status_to_chat_id мы отправляем несколько сообщений (по одному на базар),
+                        # поэтому удаляем только если это первое сообщение в серии
+                        if sent_count == 0 and chat_id_obj.last_message_id:
+                            try:
+                                delete_success, delete_error = delete_telegram_message(bot_token, chat_id_obj.chat_id, chat_id_obj.last_message_id)
+                                if delete_success:
+                                    app.logger.debug(f"Deleted previous message {chat_id_obj.last_message_id} from chat_id {chat_id_obj.chat_id}")
+                            except Exception as e:
+                                app.logger.debug(f"Error deleting previous message from chat_id {chat_id_obj.chat_id}: {e}")
+                        
                         # Отправляем уведомление напрямую в указанный chat ID
-                        success, error_detail = send_telegram_message(
+                        success, message_id, error_detail = send_telegram_message(
                             bot_token,
                             chat_id_obj.chat_id,
                             _format_notification_message(
@@ -766,9 +892,16 @@ def send_current_status_to_chat_id(chat_id_obj):
                             )
                         )
                         
-                        if success:
+                        if success and message_id:
                             sent_count += 1
-                            app.logger.info(f"Sent current status for {service.bazar_name} to chat {chat_id_obj.chat_id}")
+                            # Сохраняем ID последнего сообщения (сохраняем только для последнего отправленного)
+                            if sent_count == 1:  # Сохраняем только для первого сообщения в серии
+                                try:
+                                    chat_id_obj.last_message_id = message_id
+                                    db.session.commit()
+                                except Exception as e:
+                                    app.logger.warning(f"Error saving message_id for chat_id {chat_id_obj.chat_id}: {e}")
+                            app.logger.info(f"Sent current status for {service.bazar_name} to chat {chat_id_obj.chat_id}, message_id: {message_id}")
                         else:
                             app.logger.warning(f"Failed to send status for {service.bazar_name} to chat {chat_id_obj.chat_id}: {error_detail}")
                     else:
@@ -784,13 +917,28 @@ def send_current_status_to_chat_id(chat_id_obj):
     except Exception as e:
         app.logger.error(f"Error sending current status to chat ID: {e}", exc_info=True)
 
+def _escape_markdown(text):
+    """Экранирует специальные символы Markdown для Telegram"""
+    if not text:
+        return text
+    # Экранируем специальные символы Markdown: _ * [ ] ( ) ~ ` > # + - = | { } . !
+    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    escaped = str(text)
+    for char in special_chars:
+        escaped = escaped.replace(char, '\\' + char)
+    return escaped
+
 def _format_notification_message(bazar_name, city, offline_cameras_count, total_cameras, notification_type='offline', next_notification_in=None):
     """Форматирует сообщение уведомления"""
+    # Экранируем специальные символы Markdown в названиях
+    safe_bazar_name = _escape_markdown(bazar_name)
+    safe_city = _escape_markdown(city) if city else None
+    
     if notification_type == 'offline':
         message = f"⚠️ *Камеры отключены*\n\n"
-        message += f"🏪 *Базар:* {bazar_name}\n"
-        if city:
-            message += f"📍 *Город:* {city}\n"
+        message += f"🏪 *Базар:* {safe_bazar_name}\n"
+        if safe_city:
+            message += f"📍 *Город:* {safe_city}\n"
         message += f"📹 *Неработающих камер:* {offline_cameras_count} из {total_cameras}\n"
         message += f"🕐 *Время:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
         
@@ -804,9 +952,9 @@ def _format_notification_message(bazar_name, city, offline_cameras_count, total_
             message += f"\n⏰ *Следующее уведомление через:* {time_str}"
     else:
         message = f"✅ *Все камеры активны*\n\n"
-        message += f"🏪 *Базар:* {bazar_name}\n"
-        if city:
-            message += f"📍 *Город:* {city}\n"
+        message += f"🏪 *Базар:* {safe_bazar_name}\n"
+        if safe_city:
+            message += f"📍 *Город:* {safe_city}\n"
         message += f"📹 *Всего камер:* {total_cameras}\n"
         message += f"🕐 *Время:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
         message += "\n⏰ *Повторное уведомление будет только при изменении статуса камер*"
@@ -1707,7 +1855,7 @@ class TelegramChatIdsResource(Resource):
     
     @telegram_ns.doc('add_telegram_chat_id')
     @telegram_ns.expect(api.model('TelegramChatId', {
-        'chat_id': fields.String(required=True, description='Chat ID (числовой ID, @channel, @username)'),
+        'chat_id': fields.String(required=True, description='Chat ID (только числовой ID, например: -1001234567890 или 123456789)'),
         'chat_type': fields.String(enum=['channel', 'group', 'user'], description='Тип чата', default='channel'),
         'description': fields.String(description='Описание (например, "Основной канал")'),
         'allowed_regions': fields.List(fields.String(), description='Список разрешенных областей (если пусто - все области)')
@@ -1727,17 +1875,33 @@ class TelegramChatIdsResource(Resource):
                     'error': 'Chat ID обязателен'
                 }, 400
             
+            # Проверяем, что это числовой ID (не username)
+            chat_id_str = str(chat_id).strip()
+            if chat_id_str.startswith('@') or not (chat_id_str.startswith('-') or chat_id_str.lstrip('-').isdigit()):
+                return {
+                    'success': False,
+                    'error': 'Поддерживаются только числовые Chat ID. Username не поддерживаются. Получите числовой Chat ID через бота или используйте @userinfobot в Telegram'
+                }, 400
+            
+            # Нормализуем chat_id (только числовые ID)
+            normalized_chat_id = normalize_chat_id(chat_id)
+            if not normalized_chat_id:
+                return {
+                    'success': False,
+                    'error': 'Некорректный Chat ID. Используйте только числовые ID'
+                }, 400
+            
             # Проверяем, не существует ли уже такой chat ID
-            existing = TelegramChatId.query.filter_by(chat_id=chat_id).first()
+            existing = TelegramChatId.query.filter_by(chat_id=normalized_chat_id).first()
             if existing:
                 return {
                     'success': False,
                     'error': 'Такой chat ID уже существует'
                 }, 400
             
-            # Создаем новый chat ID
+            # Создаем новый chat ID (используем нормализованный числовой ID)
             new_chat = TelegramChatId(
-                chat_id=chat_id,
+                chat_id=normalized_chat_id,
                 chat_type=chat_type,
                 description=description,
                 enabled=True
@@ -1858,7 +2022,7 @@ class TelegramWebhookResource(Resource):
                 if data_text == 'list_bazars' or data_text == 'refresh_bazars':
                     keyboard = get_bazars_keyboard()
                     message_text = "🏪 *Список базаров*\n\nВыберите базар для просмотра информации:"
-                    send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success
+                    send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success (message_id не нужен для интерактивных сообщений)
                     # Отвечаем на callback
                     requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
                                 json={'callback_query_id': callback_query['id']}, timeout=5)
@@ -1892,7 +2056,7 @@ class TelegramWebhookResource(Resource):
                             requests.post(url, json=params, timeout=5)
                         except:
                             # Если не удалось отредактировать, отправляем новое
-                            send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success[0]  # Используем только success
+                            send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success (message_id не нужен для интерактивных сообщений)[0]  # Используем только success
                         # Отвечаем на callback
                         requests.post(f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery", 
                                     json={'callback_query_id': callback_query['id']}, timeout=5)
@@ -1941,6 +2105,21 @@ class TelegramWebhookResource(Resource):
                 
                 # Обработка команд
                 if text.startswith('/start'):
+                    # Получаем информацию о пользователе
+                    chat = message.get('chat', {})
+                    user_chat_id = str(chat.get('id'))
+                    username = chat.get('username')
+                    first_name = chat.get('first_name', '')
+                    last_name = chat.get('last_name', '')
+                    full_name = f"{first_name} {last_name}".strip()
+                    
+                    # Ищем запись только по числовому ID
+                    chat_record = TelegramChatId.query.filter_by(chat_id=user_chat_id).first()
+                    
+                    # Если записи нет, логируем (не создаем автоматически)
+                    if not chat_record:
+                        app.logger.info(f"User {username} ({user_chat_id}) started bot but not in database. Add this chat_id manually: {user_chat_id}")
+                    
                     welcome_message = (
                         "👋 *Добро пожаловать в систему мониторинга базаров!*\n\n"
                         "Доступные команды:\n"
@@ -1960,7 +2139,7 @@ class TelegramWebhookResource(Resource):
                 elif text.startswith('/bazars') or text.startswith('/list'):
                     keyboard = get_bazars_keyboard()
                     message_text = "🏪 *Список базаров*\n\nВыберите базар для просмотра информации:"
-                    send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success
+                    send_telegram_message(bot_token, chat_id, message_text, keyboard)[0]  # Используем только success (message_id не нужен для интерактивных сообщений)
                 
                 elif text.startswith('/status') or text.startswith('/stats'):
                     # Общая статистика
@@ -2117,7 +2296,7 @@ class TelegramTestResource(Resource):
             logger.info(f"Attempting to send test message to {len(chat_ids)} chat ID(s): {chat_ids}")
             for chat_id in chat_ids:
                 logger.debug(f"Attempting to send test message to chat_id: {chat_id}")
-                success, error_detail = send_telegram_message(bot_token, chat_id, message)
+                success, message_id, error_detail = send_telegram_message(bot_token, chat_id, message)
                 if success:
                     success_count += 1
                     logger.info(f"Successfully sent to {chat_id}")
@@ -2305,14 +2484,38 @@ def initialize_app():
     if not _scheduler_started:
         with app.app_context():
             # Убеждаемся, что директория для базы данных существует
-            db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+            db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+            # Обрабатываем путь для SQLite (может быть sqlite:/// или sqlite:////)
+            if db_uri.startswith('sqlite:////'):
+                db_path = db_uri.replace('sqlite:////', '/')
+            elif db_uri.startswith('sqlite:///'):
+                db_path = db_uri.replace('sqlite:///', '')
+            else:
+                db_path = db_uri.replace('sqlite:///', '')
+            
             db_dir = os.path.dirname(db_path)
             if db_dir and not os.path.exists(db_dir):
                 try:
-                    os.makedirs(db_dir, mode=0o755, exist_ok=True)
+                    os.makedirs(db_dir, mode=0o777, exist_ok=True)
                     app.logger.info(f"Created database directory: {db_dir}")
                 except Exception as e:
                     app.logger.error(f"Failed to create database directory {db_dir}: {e}")
+                    # Пытаемся создать с другими правами
+                    try:
+                        os.makedirs(db_dir, mode=0o755, exist_ok=True)
+                        app.logger.info(f"Created database directory with alternative permissions: {db_dir}")
+                    except Exception as e2:
+                        app.logger.error(f"Failed to create database directory with alternative permissions: {e2}")
+            
+            # Проверяем права доступа к директории
+            if db_dir and os.path.exists(db_dir):
+                if not os.access(db_dir, os.W_OK):
+                    app.logger.warning(f"Directory {db_dir} is not writable, attempting to fix permissions...")
+                    try:
+                        os.chmod(db_dir, 0o777)
+                        app.logger.info(f"Fixed permissions for directory: {db_dir}")
+                    except Exception as e:
+                        app.logger.warning(f"Could not fix permissions for directory {db_dir}: {e}")
             
             # Создаем таблицы если их нет
             try:
@@ -2341,14 +2544,38 @@ def before_request():
 if __name__ == '__main__':
     with app.app_context():
         # Убеждаемся, что директория для базы данных существует
-        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+        db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+        # Обрабатываем путь для SQLite (может быть sqlite:/// или sqlite:////)
+        if db_uri.startswith('sqlite:////'):
+            db_path = db_uri.replace('sqlite:////', '/')
+        elif db_uri.startswith('sqlite:///'):
+            db_path = db_uri.replace('sqlite:///', '')
+        else:
+            db_path = db_uri.replace('sqlite:///', '')
+        
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
             try:
-                os.makedirs(db_dir, mode=0o755, exist_ok=True)
+                os.makedirs(db_dir, mode=0o777, exist_ok=True)
                 app.logger.info(f"Created database directory: {db_dir}")
             except Exception as e:
                 app.logger.error(f"Failed to create database directory {db_dir}: {e}")
+                # Пытаемся создать с другими правами
+                try:
+                    os.makedirs(db_dir, mode=0o755, exist_ok=True)
+                    app.logger.info(f"Created database directory with alternative permissions: {db_dir}")
+                except Exception as e2:
+                    app.logger.error(f"Failed to create database directory with alternative permissions: {e2}")
+        
+        # Проверяем права доступа к директории
+        if db_dir and os.path.exists(db_dir):
+            if not os.access(db_dir, os.W_OK):
+                app.logger.warning(f"Directory {db_dir} is not writable, attempting to fix permissions...")
+                try:
+                    os.chmod(db_dir, 0o777)
+                    app.logger.info(f"Fixed permissions for directory: {db_dir}")
+                except Exception as e:
+                    app.logger.warning(f"Could not fix permissions for directory {db_dir}: {e}")
         
         # Создаем таблицы если их нет
         try:

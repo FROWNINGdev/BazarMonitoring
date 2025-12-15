@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,16 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
+
 <body>
     <!-- Preview overlay -->
     <div id="previewOverlay" class="preview-overlay">
@@ -26,45 +30,12 @@
 
     <!-- Particles Background -->
     <div id="particles-js"></div>
-    
+
     <!-- Top Navigation -->
     <header class="top-nav">
         <div class="nav-container">
             <!-- Global Search & Filters -->
-            <div class="control-bar">
-                <div class="search-container">
-                    <i class="fas fa-magnifying-glass"></i>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        data-i18n-placeholder="dashboard.search"
-                        placeholder="Search markets, locations, endpoints...">
-                </div>
 
-                <div class="filter-group">
-                    <div class="filter-item">
-                        <label>
-                            <i class="fas fa-location-dot"></i>
-                            <span data-i18n="dashboard.filterByCity">Location</span>
-                        </label>
-                        <select id="cityFilter">
-                            <option value="all" data-i18n="dashboard.allLocations">All Locations</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-item">
-                        <label>
-                            <i class="fas fa-signal"></i>
-                            <span data-i18n="dashboard.filterByStatus">Status</span>
-                        </label>
-                        <select id="statusFilter">
-                            <option value="all" data-i18n="dashboard.allStatuses">All Status</option>
-                            <option value="online" data-i18n="dashboard.online">Online</option>
-                            <option value="offline" data-i18n="dashboard.offline">Offline</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
             <div class="nav-actions">
                 <button id="mapBtn" class="nav-btn map-btn">
@@ -91,6 +62,71 @@
     <div id="sidebarMenu" class="sidebar-menu">
         <div class="sidebar-content">
             <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <svg width="100%" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Gradient Definitions -->
+                        <defs>
+                            <!-- Gradient for bars - white -->
+                            <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:var(--text-primary);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:var(--text-secondary);stop-opacity:0.8" />
+                            </linearGradient>
+
+                            <!-- Glow filter -->
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+
+                            <!-- Voluminous Shadow -->
+                            <filter id="voluminousShadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                                <feOffset dx="2" dy="2" result="offsetblur" />
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.5" />
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- Group for centered content, scaled up -->
+                        <g transform="translate(60, 5)">
+                            <!-- Chart bars above text with spacing - Scaled Up -->
+                            <rect x="15" y="10" width="8" height="12" rx="2" fill="url(#barGradient)" class="logo-bar-1"
+                                filter="url(#glow)" />
+                            <rect x="27" y="5" width="8" height="17" rx="2" fill="url(#barGradient)" class="logo-bar-2"
+                                filter="url(#glow)" />
+                            <rect x="39" y="2" width="8" height="20" rx="2" fill="url(#barGradient)" class="logo-bar-3"
+                                filter="url(#glow)" />
+                            <rect x="51" y="8" width="8" height="14" rx="2" fill="url(#barGradient)" class="logo-bar-4"
+                                filter="url(#glow)" />
+                            <rect x="63" y="0" width="8" height="22" rx="2" fill="url(#barGradient)" class="logo-bar-5"
+                                filter="url(#glow)" />
+
+                            <!-- Text: "baz" in white with spacing from bars - Larger Font -->
+                            <text x="-5" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="42"
+                                fill="var(--text-primary)" class="logo-text-blue"
+                                filter="url(#voluminousShadow)">baz</text>
+
+                            <!-- Text: "ar" in red - Larger Font -->
+                            <text x="68" y="52" font-family="'Inter', sans-serif" font-weight="900" font-size="42"
+                                fill="#e74c3c" class="logo-text-red" filter="url(#voluminousShadow)">ar</text>
+                        </g>
+
+                        <!-- Badge: SCC in red border with more width, filling the view - Larger -->
+                        <rect x="0" y="60" width="280" height="20" rx="4" fill="none" stroke="#e74c3c" stroke-width="2"
+                            class="logo-badge-border" filter="url(#glow)" />
+                        <text x="140" y="75" font-family="'Inter', sans-serif" font-weight="800" font-size="14"
+                            fill="var(--text-primary)" text-anchor="middle" class="logo-badge-text"
+                            letter-spacing="2">SCC</text>
+                    </svg>
+                </div>
                 <button class="sidebar-close" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -103,24 +139,21 @@
                         <span data-i18n="nav.generalStats">Общая статистика</span>
                     </button>
                 </div>
-                
-                
+
+
                 <div class="sidebar-section">
                     <h4 data-i18n="sidebar.external">Внешние сервисы</h4>
-                    <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m" 
-                       target="_blank" 
-                       class="sidebar-btn">
+                    <a href="http://192.168.168.36:3000/d/rYdddlPWk/bozor-monitoring-dashboards?orgId=1&from=now-24h&to=now&timezone=browser&var-ds_prometheus=cf10datz6wzy8b&var-job=servers&var-nodename=Surxondaryo&var-node=192.168.168.56:9100&refresh=1m"
+                        target="_blank" class="sidebar-btn">
                         <i class="fas fa-chart-line"></i>
                         <span data-i18n="nav.analytics">Аналитика</span>
                     </a>
-                    <a href="http://192.168.168.36:9000/#!/home" 
-                       target="_blank" 
-                       class="sidebar-btn">
+                    <a href="http://192.168.168.36:9000/#!/home" target="_blank" class="sidebar-btn">
                         <i class="fas fa-cubes"></i>
                         <span data-i18n="nav.containers">Контейнеры</span>
                     </a>
                 </div>
-                
+
                 <div class="sidebar-section">
                     <h4 data-i18n="sidebar.management">Управление</h4>
                     <button class="sidebar-btn" onclick="showAddServiceModal()">
@@ -136,7 +169,7 @@
                         <span>Telegram Chat ID</span>
                     </button>
                 </div>
-                
+
                 <div class="sidebar-section">
                     <h4 data-i18n="sidebar.calendar">Календарь</h4>
                     <div class="calendar-container">
@@ -156,7 +189,7 @@
                                 <i class="fas fa-calendar-alt"></i>
                             </div>
                         </div>
-                        
+
                         <div class="weekdays">
                             <span data-i18n="calendar.weekdays.monday">Пн</span>
                             <span data-i18n="calendar.weekdays.tuesday">Вт</span>
@@ -166,7 +199,7 @@
                             <span data-i18n="calendar.weekdays.saturday">Сб</span>
                             <span data-i18n="calendar.weekdays.sunday">Вс</span>
                         </div>
-                        
+
                         <div class="days-container expanded" id="daysContainer">
                             <!-- Days will be generated by JavaScript -->
                         </div>
@@ -194,7 +227,8 @@
                         <div class="status-progress">
                             <svg>
                                 <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
-                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="totalProgress"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34"
+                                    id="totalProgress"></circle>
                             </svg>
                             <div class="progress-text" id="totalProgressText">--/--</div>
                         </div>
@@ -211,7 +245,8 @@
                         <div class="status-progress">
                             <svg>
                                 <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
-                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="onlineProgress"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34"
+                                    id="onlineProgress"></circle>
                             </svg>
                             <div class="progress-text" id="onlineProgressText">--/--</div>
                         </div>
@@ -228,7 +263,8 @@
                         <div class="status-progress">
                             <svg>
                                 <circle class="progress-ring progress-ring-bg" cx="40" cy="40" r="34"></circle>
-                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34" id="offlineProgress"></circle>
+                                <circle class="progress-ring progress-ring-fill" cx="40" cy="40" r="34"
+                                    id="offlineProgress"></circle>
                             </svg>
                             <div class="progress-text" id="offlineProgressText">--/--</div>
                         </div>
@@ -238,6 +274,33 @@
                                 <div class="status-dot"></div>
                                 <span data-i18n="dashboard.requiresAction">Требует внимания</span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search & Filters Section (Sticky) -->
+            <section class="filters-section" id="filtersSection">
+                <div class="control-bar" id="controlBar">
+                    <div class="search-container">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" data-i18n-placeholder="dashboard.search"
+                            placeholder="Search markets...">
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <select id="cityFilter" data-filter-name="dashboard.filterByCity">
+                                <option value="all" data-i18n="dashboard.filterByCity">Фильтр по региону</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item">
+                            <select id="statusFilter" data-filter-name="dashboard.filterByStatus">
+                                <option value="all" data-i18n="dashboard.filterByStatus">Фильтр по статусу</option>
+                                <option value="online" data-i18n="dashboard.online">Online</option>
+                                <option value="offline" data-i18n="dashboard.offline">Offline</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -261,7 +324,7 @@
                     </div>
                     <div class="map-modal-body">
                         <div id="uzbekistanMap" class="map-view"></div>
-                        
+
                         <!-- General Overview Sidebar -->
                         <div class="general-overview">
                             <div class="overview-header">
@@ -289,7 +352,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="overview-section">
                                     <div class="overview-section-header">
                                         <i class="fas fa-exclamation-triangle"></i>
@@ -308,7 +371,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="overview-section">
                                     <div class="overview-section-header">
                                         <i class="fas fa-exclamation-triangle"></i>
@@ -327,12 +390,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Cameras Statistics Section -->
                                 <div class="map-overview-cameras">
                                     <!-- Will be populated by JavaScript -->
                                 </div>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -346,7 +409,8 @@
                     <div class="stats-modal-header">
                         <h2 data-i18n="statistics.title">Общая статистика базаров</h2>
                         <div class="stats-modal-actions">
-                            <button class="export-excel-btn" onclick="exportToExcel().catch(console.error)" title="Экспорт в Excel">
+                            <button class="export-excel-btn" onclick="exportToExcel().catch(console.error)"
+                                title="Экспорт в Excel">
                                 <i class="fas fa-file-excel"></i>
                             </button>
                             <button class="map-modal-close" onclick="closeGeneralStats()">
@@ -354,88 +418,132 @@
                             </button>
                         </div>
                     </div>
+                    <div class="stats-tabs">
+                        <button class="stats-tab-btn active" onclick="switchStatsTab('overview')" data-tab="overview">
+                            <i class="fas fa-chart-pie"></i>
+                            <span data-i18n="statistics.overview">Обзор</span>
+                        </button>
+                        <button class="stats-tab-btn" onclick="switchStatsTab('regions')" data-tab="regions">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <span data-i18n="statistics.byRegions">Регионы</span>
+                        </button>
+                        <button class="stats-tab-btn" onclick="switchStatsTab('detailed')" data-tab="detailed">
+                            <i class="fas fa-list-ul"></i>
+                            <span data-i18n="statistics.detailed">Детально</span>
+                        </button>
+                    </div>
                     <div class="stats-modal-body">
-                        <!-- Общая статистика -->
-                        <div class="stats-overview-section">
-                            <h3 data-i18n="statistics.overview">Общая статистика</h3>
-                            <div class="stats-overview-grid">
-                                <div class="stats-overview-card">
-                                    <div class="stats-overview-icon">
-                                        <i class="fas fa-store"></i>
-                                    </div>
-                                    <div class="stats-overview-info">
-                                        <div class="stats-overview-number" id="totalBazarsStats">0</div>
-                                        <div class="stats-overview-label" data-i18n="statistics.totalBazars">Всего базаров</div>
+                        <div id="tab-overview" class="stats-tab-content active">
+                            <div class="stats-dashboard-grid">
+                                <!-- Hero Card: System Health -->
+                                <div class="stats-hero-card">
+                                    <div class="hero-content">
+                                        <h3 data-i18n="statistics.systemHealth">System Health</h3>
+                                        <div class="hero-chart-container">
+                                            <div class="circular-progress" id="systemHealthChart">
+                                                <div class="inner-circle">
+                                                    <span class="percentage" id="systemHealthValue">0%</span>
+                                                    <span class="label" data-i18n="statistics.uptime">Uptime</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="hero-status">
+                                            <div class="status-item">
+                                                <span class="dot online"></span>
+                                                <span class="label" data-i18n="statistics.online">Online</span>
+                                                <span class="value" id="heroOnlineCount">0</span>
+                                            </div>
+                                            <div class="status-item">
+                                                <span class="dot offline"></span>
+                                                <span class="label" data-i18n="statistics.offline">Offline</span>
+                                                <span class="value" id="heroOfflineCount">0</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="stats-overview-card online">
-                                    <div class="stats-overview-icon">
-                                        <i class="fas fa-check-circle"></i>
+
+                                <!-- Key Metrics Grid -->
+                                <div class="stats-metrics-grid">
+                                    <!-- Bazars Metrics -->
+                                    <div class="metric-card">
+                                        <div class="metric-icon bazars">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-label" data-i18n="statistics.totalBazars">Total
+                                                Bazars</span>
+                                            <span class="metric-value" id="totalBazarsStats">0</span>
+                                        </div>
                                     </div>
-                                    <div class="stats-overview-info">
-                                        <div class="stats-overview-number" id="onlineBazarsStats">0</div>
-                                        <div class="stats-overview-label" data-i18n="statistics.onlineBazars">Онлайн</div>
+                                    <div class="metric-card">
+                                        <div class="metric-icon offline">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-label" data-i18n="statistics.offlineBazars">Offline
+                                                Bazars</span>
+                                            <span class="metric-value danger" id="offlineBazarsStats">0</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="stats-overview-card offline">
-                                    <div class="stats-overview-icon">
-                                        <i class="fas fa-times-circle"></i>
+
+                                    <!-- Cameras Metrics -->
+                                    <div class="metric-card">
+                                        <div class="metric-icon cameras">
+                                            <i class="fas fa-video"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-label" data-i18n="statistics.totalCameras">Total
+                                                Cameras</span>
+                                            <span class="metric-value" id="totalCamerasStats">0</span>
+                                        </div>
                                     </div>
-                                    <div class="stats-overview-info">
-                                        <div class="stats-overview-number" id="offlineBazarsStats">0</div>
-                                        <div class="stats-overview-label" data-i18n="statistics.offlineBazars">Оффлайн</div>
+                                    <div class="metric-card">
+                                        <div class="metric-icon cameras-offline">
+                                            <i class="fas fa-video-slash"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-label" data-i18n="statistics.notWorkingCameras">Offline
+                                                Cameras</span>
+                                            <span class="metric-value danger" id="offlineCamerasStats">0</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Статистика камер -->
-                        <div class="stats-cameras-section">
-                            <h3 data-i18n="statistics.cameras">Статистика камер</h3>
-                            <div class="stats-cameras-grid">
-                                <div class="stats-cameras-card">
-                                    <div class="stats-cameras-icon">
-                                        <i class="fas fa-video"></i>
-                                    </div>
-                                    <div class="stats-cameras-info">
-                                        <div class="stats-cameras-number" id="totalCamerasStats">0</div>
-                                        <div class="stats-cameras-label" data-i18n="statistics.totalCameras">Всего камер</div>
-                                    </div>
-                                </div>
-                                <div class="stats-cameras-card online">
-                                    <div class="stats-cameras-icon">
-                                        <i class="fas fa-video"></i>
-                                    </div>
-                                    <div class="stats-cameras-info">
-                                        <div class="stats-cameras-number" id="onlineCamerasStats">0</div>
-                                        <div class="stats-cameras-label" data-i18n="statistics.workingCameras">Работает</div>
-                                    </div>
-                                </div>
-                                <div class="stats-cameras-card offline">
-                                    <div class="stats-cameras-icon">
-                                        <i class="fas fa-video-slash"></i>
-                                    </div>
-                                    <div class="stats-cameras-info">
-                                        <div class="stats-cameras-number" id="offlineCamerasStats">0</div>
-                                        <div class="stats-cameras-label" data-i18n="statistics.notWorkingCameras">Не работает</div>
-                                    </div>
-                                </div>
+                        <div id="tab-regions" class="stats-tab-content">
+                            <div class="stats-section-header">
+                                <h3 data-i18n="statistics.byRegions">Regional Performance</h3>
                             </div>
-                        </div>
-
-                        <!-- Статистика по областям -->
-                        <div class="stats-regions-section">
-                            <h3 data-i18n="statistics.byRegions">Статистика по областям</h3>
                             <div class="stats-regions-list" id="statsRegionsList">
                                 <!-- Will be populated by JavaScript -->
                             </div>
                         </div>
 
-                        <!-- Детальная статистика по базарам -->
-                        <div class="stats-detailed-section">
-                            <h3 data-i18n="statistics.detailed">Детальная статистика по базарам</h3>
-                            <div class="stats-detailed-list" id="statsDetailedList">
-                                <!-- Will be populated by JavaScript -->
+                        <div id="tab-detailed" class="stats-tab-content">
+                            <div class="stats-section-header">
+                                <h3 data-i18n="statistics.detailed">Detailed Report</h3>
+                                <div class="table-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="detailedSearchInput" placeholder="Search in table...">
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table" id="detailedStatsTable">
+                                    <thead>
+                                        <tr>
+                                            <th data-i18n="statistics.table.name">Name</th>
+                                            <th data-i18n="statistics.table.region">Region</th>
+                                            <th data-i18n="statistics.table.status">Status</th>
+                                            <th data-i18n="statistics.table.cameras">Cameras (On/Total)</th>
+                                            <th data-i18n="statistics.table.roi">ROI</th>
+                                            <th data-i18n="statistics.table.actions">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="statsDetailedList">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -462,118 +570,133 @@
                             <form id="addServiceForm" class="admin-form">
                                 <!-- Основные поля -->
                                 <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceName">Название сервиса</label>
-                                            <input type="text" id="serviceName" name="name" placeholder="Например: MIROBOD DEHQON BOZORI">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="serviceCity">Город</label>
-                                            <input type="text" id="serviceCity" name="city" placeholder="Например: Tashkent">
-                                        </div>
+                                    <div class="form-group">
+                                        <label for="serviceName">Название сервиса</label>
+                                        <input type="text" id="serviceName" name="name"
+                                            placeholder="Например: MIROBOD DEHQON BOZORI">
                                     </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceIp">IP адрес</label>
-                                            <input type="text" id="serviceIp" name="ip" placeholder="192.168.168.37" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="servicePort">Порт фронтенда</label>
-                                            <input type="number" id="servicePort" name="port" placeholder="80" required>
-                                        </div>
+                                    <div class="form-group">
+                                        <label for="serviceCity">Город</label>
+                                        <input type="text" id="serviceCity" name="city"
+                                            placeholder="Например: Tashkent">
                                     </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceBackendPort">Порт backend API</label>
-                                            <input type="number" id="serviceBackendPort" name="backend_port" placeholder="8200" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="servicePgPort">Порт PostgreSQL</label>
-                                            <input type="number" id="servicePgPort" name="pg_port" placeholder="5400" required>
-                                        </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="serviceIp">IP адрес</label>
+                                        <input type="text" id="serviceIp" name="ip" placeholder="192.168.168.37"
+                                            required>
                                     </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceStreamPort">Порт Stream</label>
-                                            <input type="number" id="serviceStreamPort" name="stream_port" placeholder="8554">
-                                        </div>
-                                        <div class="form-group">
-                                            <!-- Empty column for alignment -->
-                                        </div>
+                                    <div class="form-group">
+                                        <label for="servicePort">Порт фронтенда</label>
+                                        <input type="number" id="servicePort" name="port" placeholder="80" required>
                                     </div>
-                                
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="serviceBackendPort">Порт backend API</label>
+                                        <input type="number" id="serviceBackendPort" name="backend_port"
+                                            placeholder="8200" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="servicePgPort">Порт PostgreSQL</label>
+                                        <input type="number" id="servicePgPort" name="pg_port" placeholder="5400"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="serviceStreamPort">Порт Stream</label>
+                                        <input type="number" id="serviceStreamPort" name="stream_port"
+                                            placeholder="8554">
+                                    </div>
+                                    <div class="form-group">
+                                        <!-- Empty column for alignment -->
+                                    </div>
+                                </div>
+
                                 <!-- Раскрывающаяся секция "Дополнительно" -->
                                 <div class="form-collapsible">
                                     <button type="button" class="form-collapsible-toggle" id="toggleAdditional">
                                         <i class="fas fa-chevron-down"></i>
                                         <span>Дополнительно (контакты, координаты)</span>
                                     </button>
-                                    
+
                                     <div class="form-collapsible-content" id="additionalContent">
                                         <div class="form-section-title">
                                             <i class="fas fa-phone"></i>
                                             <h4>Контактная информация</h4>
                                         </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceContactClickName">Имя контакта Click</label>
-                                            <input type="text" id="serviceContactClickName" name="contact_click_name" data-i18n-placeholder="modal.addService.contactClickNamePlaceholder" placeholder="Например: Иван Иванов">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="serviceContactClick">Телефон Click</label>
-                                            <div class="phone-input">
-                                                <span class="phone-prefix">+998</span>
-                                                <input type="tel" id="serviceContactClick" name="contact_click" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="serviceContactClickName">Имя контакта Click</label>
+                                                <input type="text" id="serviceContactClickName"
+                                                    name="contact_click_name"
+                                                    data-i18n-placeholder="modal.addService.contactClickNamePlaceholder"
+                                                    placeholder="Например: Иван Иванов">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serviceContactClick">Телефон Click</label>
+                                                <div class="phone-input">
+                                                    <span class="phone-prefix">+998</span>
+                                                    <input type="tel" id="serviceContactClick" name="contact_click"
+                                                        placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceContactSccName">Имя контакта SCC</label>
-                                            <input type="text" id="serviceContactSccName" name="contact_scc_name" data-i18n-placeholder="modal.addService.contactSccNamePlaceholder" placeholder="Например: Петр Петров">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="serviceContactScc">Телефон SCC</label>
-                                            <div class="phone-input">
-                                                <span class="phone-prefix">+998</span>
-                                                <input type="tel" id="serviceContactScc" name="contact_scc" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="serviceContactSccName">Имя контакта SCC</label>
+                                                <input type="text" id="serviceContactSccName" name="contact_scc_name"
+                                                    data-i18n-placeholder="modal.addService.contactSccNamePlaceholder"
+                                                    placeholder="Например: Петр Петров">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serviceContactScc">Телефон SCC</label>
+                                                <div class="phone-input">
+                                                    <span class="phone-prefix">+998</span>
+                                                    <input type="tel" id="serviceContactScc" name="contact_scc"
+                                                        placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="form-section-title">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <h4>Координаты на карте</h4>
-                                    </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="serviceLatitude">Широта</label>
-                                            <input type="text" id="serviceLatitude" name="latitude" placeholder="41.291173" pattern="^-?\d+\.?\d*$">
+
+                                        <div class="form-section-title">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <h4>Координаты на карте</h4>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="serviceLongitude">Долгота</label>
-                                            <input type="text" id="serviceLongitude" name="longitude" placeholder="69.274854" pattern="^-?\d+\.?\d*$">
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="serviceLatitude">Широта</label>
+                                                <input type="text" id="serviceLatitude" name="latitude"
+                                                    placeholder="41.291173" pattern="^-?\d+\.?\d*$">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serviceLongitude">Долгота</label>
+                                                <input type="text" id="serviceLongitude" name="longitude"
+                                                    placeholder="69.274854" pattern="^-?\d+\.?\d*$">
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
                                 </div>
-                                    
+
                                 <div class="form-actions">
-                                        <button type="submit" class="btn-submit">
-                                            <i class="fas fa-save"></i>
-                                            <span>Сохранить сервис</span>
-                                        </button>
-                                        <button type="button" id="cancelAddService" class="btn-cancel">
-                                            <i class="fas fa-times"></i>
-                                            <span>Отмена</span>
-                                        </button>
-                                    </div>
-                                </form>
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-save"></i>
+                                        <span>Сохранить сервис</span>
+                                    </button>
+                                    <button type="button" id="cancelAddService" class="btn-cancel">
+                                        <i class="fas fa-times"></i>
+                                        <span>Отмена</span>
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -598,111 +721,143 @@
                         <div class="admin-section">
                             <form id="editServiceForm" class="admin-form">
                                 <input type="hidden" id="editServiceId" name="id">
-                                
+
                                 <!-- Основные поля -->
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="editServiceName" data-i18n="modal.editService.serviceName">Название сервиса</label>
-                                        <input type="text" id="editServiceName" name="name" data-i18n-placeholder="modal.editService.serviceNamePlaceholder" placeholder="Например: MIROBOD DEHQON BOZORI">
+                                        <label for="editServiceName" data-i18n="modal.editService.serviceName">Название
+                                            сервиса</label>
+                                        <input type="text" id="editServiceName" name="name"
+                                            data-i18n-placeholder="modal.editService.serviceNamePlaceholder"
+                                            placeholder="Например: MIROBOD DEHQON BOZORI">
                                     </div>
                                     <div class="form-group">
                                         <label for="editServiceCity" data-i18n="modal.editService.city">Город</label>
-                                        <input type="text" id="editServiceCity" name="city" data-i18n-placeholder="modal.editService.cityPlaceholder" placeholder="Например: Tashkent">
+                                        <input type="text" id="editServiceCity" name="city"
+                                            data-i18n-placeholder="modal.editService.cityPlaceholder"
+                                            placeholder="Например: Tashkent">
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="editServiceIp" data-i18n="modal.editService.ipAddress">IP адрес</label>
+                                        <label for="editServiceIp" data-i18n="modal.editService.ipAddress">IP
+                                            адрес</label>
                                         <input type="text" id="editServiceIp" name="ip" placeholder="192.168.168.37">
                                     </div>
                                     <div class="form-group">
-                                        <label for="editServicePort" data-i18n="modal.editService.frontendPort">Порт фронтенда</label>
+                                        <label for="editServicePort" data-i18n="modal.editService.frontendPort">Порт
+                                            фронтенда</label>
                                         <input type="number" id="editServicePort" name="port" placeholder="80">
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="editServiceBackendPort" data-i18n="modal.editService.backendPort">Порт backend API</label>
-                                        <input type="number" id="editServiceBackendPort" name="backend_port" placeholder="8200">
+                                        <label for="editServiceBackendPort"
+                                            data-i18n="modal.editService.backendPort">Порт backend API</label>
+                                        <input type="number" id="editServiceBackendPort" name="backend_port"
+                                            placeholder="8200">
                                     </div>
                                     <div class="form-group">
-                                        <label for="editServicePgPort" data-i18n="modal.editService.pgPort">Порт PostgreSQL</label>
+                                        <label for="editServicePgPort" data-i18n="modal.editService.pgPort">Порт
+                                            PostgreSQL</label>
                                         <input type="number" id="editServicePgPort" name="pg_port" placeholder="5400">
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="editServiceStreamPort" data-i18n="modal.editService.streamPort">Порт Stream</label>
-                                        <input type="number" id="editServiceStreamPort" name="stream_port" placeholder="8554">
+                                        <label for="editServiceStreamPort" data-i18n="modal.editService.streamPort">Порт
+                                            Stream</label>
+                                        <input type="number" id="editServiceStreamPort" name="stream_port"
+                                            placeholder="8554">
                                     </div>
                                     <div class="form-group">
                                         <!-- Empty column for alignment -->
                                     </div>
                                 </div>
-                            
+
                                 <!-- Раскрывающаяся секция "Дополнительно" -->
                                 <div class="form-collapsible">
-                                    <button type="button" class="form-collapsible-toggle active" id="toggleEditAdditional">
+                                    <button type="button" class="form-collapsible-toggle active"
+                                        id="toggleEditAdditional">
                                         <i class="fas fa-chevron-down"></i>
                                         <span>Дополнительно (контакты, координаты)</span>
                                     </button>
-                                    
+
                                     <div class="form-collapsible-content active" id="editAdditionalContent">
                                         <div class="form-section-title">
                                             <i class="fas fa-phone"></i>
                                             <h4>Контактная информация</h4>
                                         </div>
-                                    
+
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label for="editServiceContactClickName" data-i18n="modal.editService.contactClickName">Имя контакта Click</label>
-                                                <input type="text" id="editServiceContactClickName" name="contact_click_name" data-i18n-placeholder="modal.editService.contactClickNamePlaceholder" placeholder="Например: Иван Иванов">
+                                                <label for="editServiceContactClickName"
+                                                    data-i18n="modal.editService.contactClickName">Имя контакта
+                                                    Click</label>
+                                                <input type="text" id="editServiceContactClickName"
+                                                    name="contact_click_name"
+                                                    data-i18n-placeholder="modal.editService.contactClickNamePlaceholder"
+                                                    placeholder="Например: Иван Иванов">
                                             </div>
                                             <div class="form-group">
-                                                <label for="editServiceContactClick" data-i18n="modal.editService.contactClick">Телефон Click</label>
+                                                <label for="editServiceContactClick"
+                                                    data-i18n="modal.editService.contactClick">Телефон Click</label>
                                                 <div class="phone-input">
                                                     <span class="phone-prefix">+998</span>
-                                                    <input type="tel" id="editServiceContactClick" name="contact_click" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                    <input type="tel" id="editServiceContactClick" name="contact_click"
+                                                        placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label for="editServiceContactSccName" data-i18n="modal.editService.contactSccName">Имя контакта SCC</label>
-                                                <input type="text" id="editServiceContactSccName" name="contact_scc_name" data-i18n-placeholder="modal.editService.contactSccNamePlaceholder" placeholder="Например: Петр Петров">
+                                                <label for="editServiceContactSccName"
+                                                    data-i18n="modal.editService.contactSccName">Имя контакта
+                                                    SCC</label>
+                                                <input type="text" id="editServiceContactSccName"
+                                                    name="contact_scc_name"
+                                                    data-i18n-placeholder="modal.editService.contactSccNamePlaceholder"
+                                                    placeholder="Например: Петр Петров">
                                             </div>
                                             <div class="form-group">
-                                                <label for="editServiceContactScc" data-i18n="modal.editService.contactScc">Телефон SCC</label>
+                                                <label for="editServiceContactScc"
+                                                    data-i18n="modal.editService.contactScc">Телефон SCC</label>
                                                 <div class="phone-input">
                                                     <span class="phone-prefix">+998</span>
-                                                    <input type="tel" id="editServiceContactScc" name="contact_scc" placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
+                                                    <input type="tel" id="editServiceContactScc" name="contact_scc"
+                                                        placeholder="901234567" pattern="[0-9]{9}" maxlength="9">
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="form-section-title">
                                             <i class="fas fa-map-marker-alt"></i>
                                             <h4 data-i18n="modal.editService.mapCoordinates">Координаты на карте</h4>
                                         </div>
-                                        
+
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label for="editServiceLatitude" data-i18n="modal.editService.latitude">Широта</label>
-                                                <input type="text" id="editServiceLatitude" name="latitude" placeholder="41.291173" pattern="^-?\d+\.?\d*$">
+                                                <label for="editServiceLatitude"
+                                                    data-i18n="modal.editService.latitude">Широта</label>
+                                                <input type="text" id="editServiceLatitude" name="latitude"
+                                                    placeholder="41.291173" pattern="^-?\d+\.?\d*$">
                                             </div>
                                             <div class="form-group">
-                                                <label for="editServiceLongitude" data-i18n="modal.editService.longitude">Долгота</label>
-                                                <input type="text" id="editServiceLongitude" name="longitude" placeholder="69.274854" pattern="^-?\d+\.?\d*$">
+                                                <label for="editServiceLongitude"
+                                                    data-i18n="modal.editService.longitude">Долгота</label>
+                                                <input type="text" id="editServiceLongitude" name="longitude"
+                                                    placeholder="69.274854" pattern="^-?\d+\.?\d*$">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                    
-                                <div class="form-actions" style="display: flex; gap: 0.75rem; justify-content: space-between;">
+
+                                <div class="form-actions"
+                                    style="display: flex; gap: 0.75rem; justify-content: space-between;">
                                     <div style="display: flex; gap: 0.75rem;">
                                         <button type="submit" class="btn-submit">
                                             <i class="fas fa-save"></i>
@@ -748,7 +903,8 @@
                                         <option value="online">Online</option>
                                         <option value="offline">Offline</option>
                                     </select>
-                                    <input type="number" id="logLimit" placeholder="Количество записей" value="50" min="1" max="1000">
+                                    <input type="number" id="logLimit" placeholder="Количество записей" value="50"
+                                        min="1" max="1000">
                                     <button id="downloadLogsBtn" class="btn-download-logs" title="Скачать логи">
                                         <i class="fas fa-download"></i>
                                         <span>Скачать</span>
@@ -787,21 +943,30 @@
                             <form id="addChatIdForm" style="margin-bottom: 2rem;">
                                 <div class="form-group">
                                     <label for="chatIdInput" data-i18n="modal.telegram.chatId">Chat ID *</label>
-                                    <input type="text" id="chatIdInput" data-i18n-placeholder="modal.telegram.chatIdPlaceholder" placeholder="@channel, @username или числовой ID" required>
-                                    <small data-i18n="modal.telegram.chatIdHint">Можно использовать: числовой ID, @channel, @username</small>
+                                    <input type="text" id="chatIdInput"
+                                        data-i18n-placeholder="modal.telegram.chatIdPlaceholder"
+                                        placeholder="@channel, @username или числовой ID" required>
+                                    <small data-i18n="modal.telegram.chatIdHint">Можно использовать: числовой ID,
+                                        @channel, @username</small>
                                 </div>
                                 <div class="form-group">
                                     <label data-i18n="modal.telegram.type">Тип</label>
                                     <div class="type-selector" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                                        <button type="button" class="type-option active" data-type="channel" onclick="selectChatType('channel')" style="flex: 1; padding: 0.75rem; border: 2px solid var(--primary); border-radius: 6px; background: var(--primary); color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 500;">
+                                        <button type="button" class="type-option active" data-type="channel"
+                                            onclick="selectChatType('channel')"
+                                            style="flex: 1; padding: 0.75rem; border: 2px solid var(--primary); border-radius: 6px; background: var(--primary); color: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 500;">
                                             <i class="fas fa-bullhorn"></i>
                                             <span data-i18n="modal.telegram.typeChannel">Канал</span>
                                         </button>
-                                        <button type="button" class="type-option" data-type="group" onclick="selectChatType('group')" style="flex: 1; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; background: var(--surface-color); color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                        <button type="button" class="type-option" data-type="group"
+                                            onclick="selectChatType('group')"
+                                            style="flex: 1; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; background: var(--surface-color); color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                                             <i class="fas fa-users"></i>
                                             <span data-i18n="modal.telegram.typeGroup">Группа</span>
                                         </button>
-                                        <button type="button" class="type-option" data-type="user" onclick="selectChatType('user')" style="flex: 1; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; background: var(--surface-color); color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                        <button type="button" class="type-option" data-type="user"
+                                            onclick="selectChatType('user')"
+                                            style="flex: 1; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 6px; background: var(--surface-color); color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                                             <i class="fas fa-user"></i>
                                             <span data-i18n="modal.telegram.typeUser">Пользователь</span>
                                         </button>
@@ -809,13 +974,19 @@
                                     <input type="hidden" id="chatTypeSelect" value="channel">
                                 </div>
                                 <div class="form-group">
-                                    <label for="chatDescriptionInput" data-i18n="modal.telegram.description">Описание (опционально)</label>
-                                    <input type="text" id="chatDescriptionInput" data-i18n-placeholder="modal.telegram.descriptionPlaceholder" placeholder="Например: Основной канал">
+                                    <label for="chatDescriptionInput" data-i18n="modal.telegram.description">Описание
+                                        (опционально)</label>
+                                    <input type="text" id="chatDescriptionInput"
+                                        data-i18n-placeholder="modal.telegram.descriptionPlaceholder"
+                                        placeholder="Например: Основной канал">
                                 </div>
                                 <div class="form-group">
-                                    <label data-i18n="modal.telegram.allowedRegions">Разрешенные области (оставьте пустым для всех областей)</label>
-                                    <div id="regionsCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
-                                        <small style="color: var(--text-muted);" data-i18n="modal.telegram.loadingRegions">Загрузка областей...</small>
+                                    <label data-i18n="modal.telegram.allowedRegions">Разрешенные области (оставьте
+                                        пустым для всех областей)</label>
+                                    <div id="regionsCheckboxes"
+                                        style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
+                                        <small style="color: var(--text-muted);"
+                                            data-i18n="modal.telegram.loadingRegions">Загрузка областей...</small>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn-submit">
@@ -823,12 +994,15 @@
                                     <span data-i18n="modal.telegram.add">Добавить</span>
                                 </button>
                             </form>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; margin-bottom: 1rem;">
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; margin-bottom: 1rem;">
                                 <h3 style="margin: 0;" data-i18n="modal.telegram.chatIdsList">Список Chat ID</h3>
-                                <button id="testTelegramNotificationBtn" class="btn-submit" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;">
+                                <button id="testTelegramNotificationBtn" class="btn-submit"
+                                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;">
                                     <i class="fas fa-paper-plane"></i>
-                                    <span data-i18n="modal.telegram.testNotification">Отправить тестовое уведомление</span>
+                                    <span data-i18n="modal.telegram.testNotification">Отправить тестовое
+                                        уведомление</span>
                                 </button>
                             </div>
                             <div id="chatIdsList" style="margin-top: 1rem;">
@@ -856,11 +1030,13 @@
                     </div>
                     <div class="admin-modal-body">
                         <div class="admin-section">
-                            <p style="margin-bottom: 1rem; color: var(--text-muted);" data-i18n="modal.telegram.editRegionsDescription">
-                                Выберите области, для которых этот Chat ID будет получать уведомления. 
+                            <p style="margin-bottom: 1rem; color: var(--text-muted);"
+                                data-i18n="modal.telegram.editRegionsDescription">
+                                Выберите области, для которых этот Chat ID будет получать уведомления.
                                 Если ничего не выбрано, будут приходить уведомления со всех областей.
                             </p>
-                            <div id="editRegionsCheckboxes" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
+                            <div id="editRegionsCheckboxes"
+                                style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
                                 <!-- Чекбоксы будут загружены динамически -->
                             </div>
                             <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
@@ -912,4 +1088,5 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>

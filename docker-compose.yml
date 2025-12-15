@@ -8,10 +8,11 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # Монтируем volume для сохранения БД
+      # Монтируем volume для сохранения БД (должен быть первым, чтобы не перезаписываться)
       - bazar-db:/app/instance
-      # Монтируем код для разработки (hot reload)
+      # Монтируем код для разработки (hot reload) - исключаем instance из монтирования
       - ./backend:/app
+      - /app/instance
     entrypoint: ["sh", "-c", "chmod +x /app/docker-entrypoint.sh && /app/docker-entrypoint.sh"]
     environment:
       - SQLALCHEMY_DATABASE_URI=sqlite:////app/instance/bazar_monitoring.db

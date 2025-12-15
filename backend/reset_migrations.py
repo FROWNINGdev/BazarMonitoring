@@ -12,16 +12,45 @@ def reset_migrations():
         print("Checking migration system...")
         
         # Получаем путь к базе данных
-        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+        db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+        # Обрабатываем путь для SQLite (может быть sqlite:/// или sqlite:////)
+        if db_uri.startswith('sqlite:///'):
+            db_path = db_uri.replace('sqlite:///', '')
+        elif db_uri.startswith('sqlite:////'):
+            db_path = db_uri.replace('sqlite:////', '/')
+        else:
+            db_path = db_uri.replace('sqlite:///', '')
         
         # Создаем директорию для базы данных если её нет
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
-            os.makedirs(db_dir, exist_ok=True)
-            print(f"SUCCESS: Created database directory: {db_dir}")
+            try:
+                os.makedirs(db_dir, mode=0o777, exist_ok=True)
+                print(f"SUCCESS: Created database directory: {db_dir}")
+            except Exception as e:
+                print(f"ERROR: Failed to create database directory {db_dir}: {e}")
+                # Пытаемся создать с другими правами
+                try:
+                    os.makedirs(db_dir, mode=0o755, exist_ok=True)
+                    print(f"SUCCESS: Created database directory with alternative permissions: {db_dir}")
+                except Exception as e2:
+                    print(f"ERROR: Failed to create database directory with alternative permissions: {e2}")
+        
+        # Проверяем права доступа к директории
+        if db_dir and os.path.exists(db_dir):
+            if not os.access(db_dir, os.W_OK):
+                print(f"WARNING: Directory {db_dir} is not writable, attempting to fix permissions...")
+                try:
+                    os.chmod(db_dir, 0o777)
+                    print(f"SUCCESS: Fixed permissions for directory: {db_dir}")
+                except Exception as e:
+                    print(f"WARNING: Could not fix permissions for directory {db_dir}: {e}")
         
         # Проверяем, существует ли база данных
         db_exists = os.path.exists(db_path)
+        
+        # Инициализируем переменную tables
+        tables = []
         
         if db_exists:
             try:
@@ -62,6 +91,13 @@ def reset_migrations():
                 # Fallback: просто создаем таблицы
                 try:
                     db.create_all()
+                    # Получаем список таблиц после создания
+                    try:
+                        from sqlalchemy import inspect
+                        inspector = inspect(db.engine)
+                        tables = inspector.get_table_names()
+                    except:
+                        tables = []
                     print("SUCCESS: Tables created/verified via fallback")
                 except Exception as e2:
                     print(f"ERROR: Could not create tables: {e2}")
@@ -112,6 +148,11 @@ def reset_migrations():
         try:
             from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
+            
+            # Получаем список таблиц заново, если он не был получен ранее
+            if not tables:
+                tables = inspector.get_table_names()
+            
             columns = [col['name'] for col in inspector.get_columns('bazar_status')]
             
             # Список колонок, которые должны быть
@@ -130,6 +171,8 @@ def reset_migrations():
             else:
                 # Проверяем колонки в таблице telegram_chat_id
                 telegram_chat_columns = [col['name'] for col in inspector.get_columns('telegram_chat_id')]
+                
+                # Добавляем колонку allowed_regions если её нет
                 if 'allowed_regions' not in telegram_chat_columns:
                     try:
                         db.session.execute(text('ALTER TABLE telegram_chat_id ADD COLUMN allowed_regions TEXT'))
@@ -137,6 +180,15 @@ def reset_migrations():
                         print("SUCCESS: Added column allowed_regions to telegram_chat_id table")
                     except Exception as e:
                         print(f"WARNING: Could not add column allowed_regions: {e}")
+                
+                # Добавляем колонку last_message_id если её нет
+                if 'last_message_id' not in telegram_chat_columns:
+                    try:
+                        db.session.execute(text('ALTER TABLE telegram_chat_id ADD COLUMN last_message_id INTEGER'))
+                        db.session.commit()
+                        print("SUCCESS: Added column last_message_id to telegram_chat_id table")
+                    except Exception as e:
+                        print(f"WARNING: Could not add column last_message_id: {e}")
             
             # Добавляем недостающие колонки
             for col_name, col_type in required_columns.items():
